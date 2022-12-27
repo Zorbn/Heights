@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastJump", "FastJump\FastJump.csproj", "{78FBF58A-D6F2-4146-8D3A-E7AE2CF7B1D8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{78FBF58A-D6F2-4146-8D3A-E7AE2CF7B1D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78FBF58A-D6F2-4146-8D3A-E7AE2CF7B1D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78FBF58A-D6F2-4146-8D3A-E7AE2CF7B1D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78FBF58A-D6F2-4146-8D3A-E7AE2CF7B1D8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
