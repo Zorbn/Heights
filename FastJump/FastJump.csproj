@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <OutputType>WinExe</OutputType>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
         <PublishReadyToRun>false</PublishReadyToRun>
         <TieredCompilation>false</TieredCompilation>
     </PropertyGroup>
@@ -10,21 +10,25 @@
         <ApplicationIcon>Icon.ico</ApplicationIcon>
     </PropertyGroup>
     <ItemGroup>
-        <None Remove="Icon.ico"/>
-        <None Remove="Icon.bmp"/>
+        <None Remove="Icon.ico" />
+        <None Remove="Icon.bmp" />
     </ItemGroup>
     <ItemGroup>
-        <EmbeddedResource Include="Icon.ico"/>
-        <EmbeddedResource Include="Icon.bmp"/>
+        <EmbeddedResource Include="Icon.ico" />
+        <EmbeddedResource Include="Icon.bmp" />
     </ItemGroup>
     <ItemGroup>
-        <MonoGameContentReference Include="Content\Content.mgcb"/>
+        <MonoGameContentReference Include="Content\Content.mgcb" />
     </ItemGroup>
     <ItemGroup>
-        <TrimmerRootAssembly Include="Microsoft.Xna.Framework.Content.ContentTypeReader" Visible="false"/>
+        <TrimmerRootAssembly Include="Microsoft.Xna.Framework.Content.ContentTypeReader" Visible="false" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.0.1641"/>
-        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.0.1641"/>
+        <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303" />
+        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.0.1641" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Messaging\Messaging.csproj" />
+      <ProjectReference Include="..\Shared\Shared.csproj" />
     </ItemGroup>
 </Project>

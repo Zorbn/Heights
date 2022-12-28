@@ -18,7 +18,7 @@ public class MessageStream
     public delegate void OnDisconnect(int id);
 
     private OnDisconnect onDisconnect;
-    public delegate void MessageHandler(Data data);
+    public delegate void MessageHandler(int fromId, Data data);
     private Dictionary<Message.MessageType, MessageHandler> messageHandlers;
 
     public MessageStream(TcpClient socket, int id, Dictionary<Message.MessageType, MessageHandler> messageHandlers, OnDisconnect onDisconnect)
@@ -64,7 +64,6 @@ public class MessageStream
 
             // Write byte array to socketConnection stream.                 
             stream.Write(clientMessageAsByteArray, 0, clientMessageAsByteArray.Length);
-            Console.WriteLine("Sent message.");
         }
         catch (SocketException socketException)
         {
@@ -119,6 +118,6 @@ public class MessageStream
         int offset = 2 * sizeof(int); // Length of message length and type
         Data data = (Data) ByteUtils.ByteArrayToObject( Message.ToDataType(messageType), dataBuffer.GetRange(offset, length - offset).ToArray());
         
-        messageHandlers[messageType](data!);
+        messageHandlers[messageType](Id, data!);
     }
 }

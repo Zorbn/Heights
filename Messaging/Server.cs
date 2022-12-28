@@ -7,6 +7,8 @@ public static class Server
 {
     public delegate void OnTick();
 
+    public delegate void OnClientConnect(int id);
+    
     private static TcpListener TcpListener;
     private static Dictionary<int, MessageStream> Clients;
     private static Dictionary<Message.MessageType, MessageStream.MessageHandler> MessageHandlers;
@@ -14,10 +16,11 @@ public static class Server
     private static int TickRate;
 
     private static MessageStream.OnDisconnect OnDisconnectCallback;
+    private static OnClientConnect OnClientConnectCallback;
     private static OnTick OnTickCallback;
     
     public static void StartServer(string ip, Dictionary<Message.MessageType, 
-        MessageStream.MessageHandler> messageHandlers, int tickRate, OnTick onTick, MessageStream.OnDisconnect onDisconnect)
+        MessageStream.MessageHandler> messageHandlers, int tickRate, OnTick onTick, MessageStream.OnDisconnect onDisconnect, OnClientConnect onClientConnect)
     {
         MessageHandlers = messageHandlers;
         Clients = new Dictionary<int, MessageStream>();
@@ -25,6 +28,7 @@ public static class Server
 
         OnDisconnectCallback = onDisconnect;
         OnTickCallback = onTick;
+        OnClientConnectCallback = onClientConnect;
             
         TcpListener = new TcpListener(IPAddress.Parse(ip), 8052);
         TcpListener.Start();
@@ -58,6 +62,7 @@ public static class Server
         };
             
         Clients[newClientId].SendMessage(Message.MessageType.Initialize, initData);
+        OnClientConnectCallback.Invoke(newClientId);
     }
 
     private static void OnDisconnect(int id)

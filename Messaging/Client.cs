@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Messaging;
 
@@ -11,11 +7,10 @@ public static class Client
 {
     public delegate void OnConnect();
     public delegate void OnConnectFailed();
-    public delegate void OnTick();
+    public delegate void OnInitialized(int localId);
 
     private static TcpClient Socket;
     private static MessageStream MessageStream;
-    private static int TickRate;
     
     private static bool IsInitialized;
 
@@ -28,18 +23,17 @@ public static class Client
     private static MessageStream.OnDisconnect OnDisconnectCallback;
     private static OnConnect OnConnectCallback;
     private static OnConnectFailed OnConnectFailedCallback;
-    private static OnTick OnTickCallback;
+    private static OnInitialized OnInitializedCallback;
     
     public static void StartClient(string ip, Dictionary<Message.MessageType, 
-        MessageStream.MessageHandler> messageHandlers, int tickRate, OnTick onTick, 
-        MessageStream.OnDisconnect onDisconnect, OnConnect onConnect, OnConnectFailed onConnectFailed)
+        MessageStream.MessageHandler> messageHandlers,
+        MessageStream.OnDisconnect onDisconnect, OnConnect onConnect,
+        OnConnectFailed onConnectFailed, OnInitialized onInitialized)
     {
-        TickRate = tickRate;
-        
         OnDisconnectCallback = onDisconnect;
         OnConnectCallback = onConnect;
         OnConnectFailedCallback = onConnectFailed;
-        OnTickCallback = onTick;
+        OnInitializedCallback = onInitialized;
         
         MessageHandlers = messageHandlers;
 
@@ -51,26 +45,14 @@ public static class Client
             }
         }
         
-        Socket = new TcpClient()
+        Socket = new TcpClient
         {
             ReceiveBufferSize = MessageStream.DataBufferSize,
             SendBufferSize = MessageStream.DataBufferSize
         };
         Socket.BeginConnect(IPAddress.Parse(ip), 8052, ConnectCallback, Socket);
-
-        Tick();
-        
-        SpinWait.SpinUntil(() => false);
     }
 
-    private static void Tick()
-    {
-        Task.Delay(1000 / TickRate).ContinueWith(_ => Tick());
-
-        if (!IsInitialized) return;
-        OnTickCallback();
-    }
-    
     private static void ConnectCallback(IAsyncResult result)
     {
         try
@@ -81,11 +63,11 @@ public static class Client
         {
             OnConnectFailedCallback();
         }
-
+        
+        if (!Socket.Connected) return;
+        
         OnConnectCallback();
 
-        if (!Socket.Connected) return;
-            
         MessageStream = new MessageStream(Socket, 0, MessageHandlers, OnDisconnectCallback);
         MessageStream.StartReading();
     }
@@ -97,7 +79,7 @@ public static class Client
         MessageStream.SendMessage(type, data);
     }
     
-    public static void HandleInitialize(Data data)
+    public static void HandleInitialize(int fromId, Data data)
     {
         if (data is not InitializeData initData) return;
 
@@ -105,5 +87,6 @@ public static class Client
         MessageStream.Id = initData.Id;
             
         Console.WriteLine($"Initialized with id of: {initData.Id}.");
+        OnInitializedCallback(initData.Id);
     }
 }
