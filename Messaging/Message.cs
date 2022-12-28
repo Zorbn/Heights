@@ -2,24 +2,24 @@
 
 namespace Messaging;
 
-// TODO: Will messaging still work if there is no data base class, and all message data types are structs?
+public interface Data
+{
+}
+
 [Serializable]
-public class Data {}
-    
-[Serializable]
-public class InitializeData : Data
+public struct InitializeData : Data
 {
     [JsonInclude] public int Id;
 }
 
 [Serializable]
-public class ExampleNotificationData : Data
+public struct ExampleNotificationData : Data
 {
-    [JsonInclude] public string Text = "";
+    [JsonInclude] public string Text;
 }
 
 [Serializable]
-public class SpawnPlayerData : Data
+public struct SpawnPlayerData : Data
 {
     [JsonInclude] public int Id;
     [JsonInclude] public float X;
@@ -27,13 +27,13 @@ public class SpawnPlayerData : Data
 }
 
 [Serializable]
-public class DestroyPlayerData : Data
+public struct DestroyPlayerData : Data
 {
     [JsonInclude] public int Id;
 }
 
 [Serializable]
-public class MovePlayerData : Data
+public struct MovePlayerData : Data
 {
     [JsonInclude] public int Id;
     [JsonInclude] public float X;

@@ -11,13 +11,19 @@ namespace FastJump;
 
 public class FastJumpGame : Game
 {
+    public const int VirtualScreenWidth = 320;
+    public const int VirtualScreenHeight = 180;
+    public const int WindowDefaultSizeMultiplier = 2;
+    
+    private const float PlayerSpeed = 200f;
+    private const float SpriteInterpSpeed = 10f;
+    
     private GraphicsDeviceManager graphics;
     private SpriteBatch spriteBatch;
     private TextureAtlas textureAtlas;
     
     private Dictionary<int, PlayerData> players = new();
-    private const float PlayerSpeed = 100f;
-    private const float SpriteInterpSpeed = 10f;
+    private Camera camera;
     private int localId = -1;
     
     public FastJumpGame()
@@ -26,11 +32,16 @@ public class FastJumpGame : Game
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
+        InactiveSleepTime = TimeSpan.Zero; // Don't throttle FPS when the window is inactive.
+        graphics.PreferredBackBufferWidth = VirtualScreenWidth * WindowDefaultSizeMultiplier;
+        graphics.PreferredBackBufferHeight = VirtualScreenHeight * WindowDefaultSizeMultiplier;
+        graphics.ApplyChanges();
     }
-
+    
     protected override void Initialize()
     {
         textureAtlas = new TextureAtlas(GraphicsDevice, "Content/atlas.png", 8);
+        camera = new Camera(VirtualScreenWidth, VirtualScreenHeight);
      
         Dictionary<Message.MessageType, MessageStream.MessageHandler> messageHandlers = new()
         {
@@ -118,6 +129,8 @@ public class FastJumpGame : Game
     {
         var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         
+        camera.ScaleToScreen(Window.ClientBounds.Width, Window.ClientBounds.Height);
+        
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
         spriteBatch.Begin(samplerState: SamplerState.PointClamp);
@@ -134,10 +147,10 @@ public class FastJumpGame : Game
                 pair.Value.Sprite.StepTowards(pair.Value.Player.Position, deltaTime * SpriteInterpSpeed);
             }
 
-            textureAtlas.Draw(spriteBatch, pair.Value.Sprite.Position, 0, 0, 2, 2, Color.White);
+            textureAtlas.Draw(spriteBatch, camera, pair.Value.Sprite.Position, 0, 0, 2, 2, Color.White);
         }
 
-        textureAtlas.Draw(spriteBatch, new Vector2(16, 0), 2, 0, 2, 2, Color.White);
+        textureAtlas.Draw(spriteBatch, camera, new Vector2(16, 0), 2, 0, 2, 2, Color.White);
         spriteBatch.End();
 
         base.Draw(gameTime);
