@@ -34,6 +34,7 @@ public class FastJumpGame : Game
     private Map map;
     private Camera camera;
     private int localId = -1;
+    private float animTime = 0f;
     
     public FastJumpGame()
     {
@@ -49,7 +50,7 @@ public class FastJumpGame : Game
     
     protected override void Initialize()
     {
-        textureAtlas = new TextureAtlas(GraphicsDevice, "Content/atlas.png", 8);
+        textureAtlas = new TextureAtlas(GraphicsDevice, "Content/atlas.png", 16);
         map = new Map("Content/map.json");
         camera = new Camera(VirtualScreenWidth, VirtualScreenHeight);
      
@@ -82,6 +83,7 @@ public class FastJumpGame : Game
             Exit();
 
         var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        animTime += deltaTime;
 
         if (keyState.IsKeyDown(Keys.S))
         {
@@ -113,7 +115,8 @@ public class FastJumpGame : Game
             Id = localId,
             X = player.Position.X,
             Y = player.Position.Y,
-            Direction = (byte)player.Direction
+            Direction = (byte)player.Direction,
+            Animation = (byte)player.Animation
         });
     }
 
@@ -142,7 +145,8 @@ public class FastJumpGame : Game
             }
 
             bool flipped = pair.Value.Player.Direction == Direction.Left;
-            textureAtlas.Draw(spriteBatch, camera, pair.Value.Sprite.Position, 0, 0, 2, 2, Color.White, 1f, 0f, flipped);
+            Frame frame = pair.Value.Sprite.UpdateAnimation(pair.Value.Player.Animation, deltaTime);
+            textureAtlas.Draw(spriteBatch, camera, pair.Value.Sprite.Position, frame.X, frame.Y, 2, 2, Color.White, 1f, 0f, flipped);
         }
         
         spriteBatch.End();
@@ -178,6 +182,7 @@ public class FastJumpGame : Game
         player.Position.X = moveData.X;
         player.Position.Y = moveData.Y;
         player.Direction = (Direction)moveData.Direction;
+        player.Animation = (Animation)moveData.Animation;
     }
     
     public void OnDisconnect(int id)

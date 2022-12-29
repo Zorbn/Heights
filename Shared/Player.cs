@@ -11,11 +11,12 @@ public class Player
  
     public Vector2 Position;
     public Direction Direction = Direction.Right;
+    public Animation Animation = Animation.PlayerIdle;
 
     private float velocity;
     private bool grounded;
     private bool extraHeight;
-    
+
     public Player(Vector2 position)
     {
         Position = position;
@@ -36,6 +37,8 @@ public class Player
         {
             Direction = Direction.Left;
         }
+
+        Animation = move.X != 0f ? Animation.PlayerRunning : Animation.PlayerIdle;
         
         newPosition.X += move.X * Speed * deltaTime;
         

@@ -19,7 +19,7 @@ public class Server
             { Message.MessageType.MovePlayer, HandleMovePlayer }
         };
         
-        Messaging.Server.StartServer("127.0.0.1", messageHandlers, 60, OnTick, OnDisconnect, OnConnect);
+        Messaging.Server.StartServer("127.0.0.1", messageHandlers, 20, OnTick, OnDisconnect, OnConnect);
     }
     
     private void OnTick()
@@ -32,8 +32,21 @@ public class Server
                 Id = pair.Key,
                 X = pair.Value.Position.X,
                 Y = pair.Value.Position.Y,
-                Direction = (byte)pair.Value.Direction
+                Direction = (byte)pair.Value.Direction,
+                Animation = (byte)pair.Value.Animation
             });
+
+            if (pair.Value.Position.Y > mapData.TileSize * mapData.Height)
+            {
+                Messaging.Server.SendMessageToAll(Message.MessageType.MovePlayer, new MovePlayerData
+                {
+                    Id = pair.Key,
+                    X = mapData.SpawnPos.X,
+                    Y = mapData.SpawnPos.Y,
+                    Direction = (byte)Direction.Right,
+                    Animation = (byte)Animation.PlayerIdle
+                });
+            }
         }
     }
     
@@ -80,5 +93,6 @@ public class Server
         player.Position.X = moveData.X;
         player.Position.Y = moveData.Y;
         player.Direction = (Direction)moveData.Direction;
+        player.Animation = (Animation)moveData.Animation;
     }
 }

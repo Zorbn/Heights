@@ -34,6 +34,7 @@ public struct MovePlayerData : Data
     [JsonInclude] public float X;
     [JsonInclude] public float Y;
     [JsonInclude] public byte Direction;
+    [JsonInclude] public byte Animation;
 }
     
 public class Message
