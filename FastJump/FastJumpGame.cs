@@ -102,7 +102,7 @@ public class FastJumpGame : Game
         var dir = 0f;
         if (keyState.IsKeyDown(Keys.Left)) dir -= 1f;
         if (keyState.IsKeyDown(Keys.Right)) dir += 1f;
-        bool tryJump = keyState.IsKeyDown(Keys.Space);
+        bool tryJump = keyState.IsKeyDown(Keys.Space) || keyState.IsKeyDown(Keys.Up);
         bool noClip = keyState.IsKeyDown(Keys.N);
         player.Move(dir, tryJump, noClip, map.MapData, deltaTime);
         

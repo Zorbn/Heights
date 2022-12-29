@@ -42,7 +42,7 @@ public class MapData
         return GetTile(tileX, tileY);
     }
     
-    public bool IsCollidingWith(float x, float y, Vector2 size)
+    public bool IsCollidingWith(Vector2 position, Vector2 size)
     {
         for (var i = 0; i < 4; i++)
         {
@@ -52,8 +52,8 @@ public class MapData
             float xDir = xOff - 0.5f;
             float yDir = yOff - 0.5f;
 
-            float cornerX = x + xDir * size.X;
-            float cornerY = y + yDir * size.Y;
+            float cornerX = position.X + xDir * size.X;
+            float cornerY = position.Y + yDir * size.Y;
             char tile = GetTileAtWorldPos(cornerX, cornerY);
             if (Palette[tile].Solid) return true;
         }

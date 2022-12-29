@@ -39,7 +39,7 @@ public class Player
         
         newPosition.X += move.X * Speed * deltaTime;
         
-        if (!noClip && mapData.IsCollidingWith(newPosition.X, Position.Y, HitBoxSize))
+        if (!noClip && mapData.IsCollidingWith(newPosition, HitBoxSize))
         {
             newPosition.X = GetMaxPosInTile(Position.X, HitBoxSize.X, move.X, mapData.TileSize);
         }
@@ -66,7 +66,7 @@ public class Player
         newPosition.Y += move.Y * Speed * deltaTime;
         grounded = false;
         
-        if (!noClip && mapData.IsCollidingWith(Position.X, newPosition.Y, HitBoxSize))
+        if (!noClip && mapData.IsCollidingWith(newPosition, HitBoxSize))
         {
             if (velocity > 0f)
             {

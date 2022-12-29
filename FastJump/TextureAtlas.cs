@@ -5,8 +5,11 @@ namespace FastJump;
 
 public class TextureAtlas
 {
-    private readonly Texture2D texture;
+    // Prevent textures occasionally bleeding together on the edges.
+    public const float Padding = 0.01f;
     public readonly int TileSize;
+    
+    private readonly Texture2D texture;
 
     public TextureAtlas(GraphicsDevice graphicsDevice, string path, int tileSize)
     {
