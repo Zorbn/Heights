@@ -30,10 +30,18 @@ public class Camera
         UpdateOffset();
     }
     
-    public void GoTo(Vector2 target)
+    public void Teleport(Vector2 target)
     {
         Vector2 newPos = target - offset;
         Position = newPos;
+    }
+    
+    public void StepTowards(Vector2 position, float delta)
+    {
+        Vector2 newPosition = Position;
+        newPosition.X = Position.X + (position.X - offset.X - Position.X) * delta;
+        newPosition.Y = Position.Y + (position.Y - offset.Y - Position.Y) * delta;
+        Position = newPosition;
     }
 
     public void ScaleToScreen(int width, int height)

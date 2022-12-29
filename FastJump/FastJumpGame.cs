@@ -24,6 +24,7 @@ public class FastJumpGame : Game
     public const int WindowDefaultSizeMultiplier = 2;
     
     private const float SpriteInterpSpeed = 20f;
+    private const float CameraInterpSpeed = 20f;
     
     private GraphicsDeviceManager graphics;
     private SpriteBatch spriteBatch;
@@ -105,6 +106,7 @@ public class FastJumpGame : Game
         bool tryJump = keyState.IsKeyDown(Keys.Space) || keyState.IsKeyDown(Keys.Up);
         bool noClip = keyState.IsKeyDown(Keys.N);
         player.Move(dir, tryJump, noClip, map.MapData, deltaTime);
+        camera.StepTowards(player.Position + new Vector2(map.MapData.TileSize * 0.5f), CameraInterpSpeed * deltaTime);
         
         Client.SendMessage(Message.MessageType.MovePlayer, new MovePlayerData
         {
