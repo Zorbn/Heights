@@ -13,8 +13,7 @@ namespace FastJump;
  * Menu to choose IP and start the game.
  * Goal flag that the players try to reach.
  * Score/time that is awarded to players when they reach the goal.
- * Make the map larger/improve the map's textures.
- * Change the player's sprite when moving.
+ * Make the map larger.
  */
 
 public class FastJumpGame : Game
@@ -33,8 +32,8 @@ public class FastJumpGame : Game
     private Dictionary<int, PlayerData> players = new();
     private Map map;
     private Camera camera;
+    private Camera uiCamera;
     private int localId = -1;
-    private float animTime = 0f;
     
     public FastJumpGame()
     {
@@ -51,15 +50,20 @@ public class FastJumpGame : Game
     protected override void Initialize()
     {
         textureAtlas = new TextureAtlas(GraphicsDevice, "Content/atlas.png", 16);
+        Sprite.LoadAnimation(Animation.PlayerIdle, "Content/Animations/playerIdle.json");
+        Sprite.LoadAnimation(Animation.PlayerRunning, "Content/Animations/playerRunning.json");
+        Sprite.LoadAnimation(Animation.PlayerJumping, "Content/Animations/playerJumping.json");
         map = new Map("Content/map.json");
         camera = new Camera(VirtualScreenWidth, VirtualScreenHeight);
+        uiCamera = new Camera(VirtualScreenWidth, VirtualScreenHeight, false);
      
         Dictionary<Message.MessageType, MessageStream.MessageHandler> messageHandlers = new()
         {
             { Message.MessageType.ExampleNotification, ExampleNotification.HandleNotification },
             { Message.MessageType.SpawnPlayer, HandleSpawnPlayer },
             { Message.MessageType.DestroyPlayer, HandleDestroyPlayer },
-            { Message.MessageType.MovePlayer, HandleMovePlayer }
+            { Message.MessageType.MovePlayer, HandleMovePlayer },
+            // { Message.MessageType.UpdateScore, HandleUpdateScore }
         };
         
         Client.StartClient("127.0.0.1", messageHandlers, OnDisconnect, OnConnect, OnConnectFailed, OnInitialized);
@@ -70,8 +74,6 @@ public class FastJumpGame : Game
     protected override void LoadContent()
     {
         spriteBatch = new SpriteBatch(GraphicsDevice);
-
-        // TODO: use this.Content to load your game content here
     }
 
     protected override void Update(GameTime gameTime)
@@ -83,7 +85,6 @@ public class FastJumpGame : Game
             Exit();
 
         var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-        animTime += deltaTime;
 
         if (keyState.IsKeyDown(Keys.S))
         {
@@ -125,6 +126,7 @@ public class FastJumpGame : Game
         var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         
         camera.ScaleToScreen(Window.ClientBounds.Width, Window.ClientBounds.Height);
+        uiCamera.ScaleToScreen(Window.ClientBounds.Width, Window.ClientBounds.Height);
         
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
@@ -148,7 +150,13 @@ public class FastJumpGame : Game
             Frame frame = pair.Value.Sprite.UpdateAnimation(pair.Value.Player.Animation, deltaTime);
             textureAtlas.Draw(spriteBatch, camera, pair.Value.Sprite.Position, frame.X, frame.Y, 2, 2, Color.White, 1f, 0f, flipped);
         }
-        
+
+        if (localId != -1)
+        {
+            Player player = players[localId].Player;
+            TextRenderer.Draw($"SCORE {player.Score}", 8, 8, textureAtlas, spriteBatch, uiCamera);
+        }
+
         spriteBatch.End();
 
         base.Draw(gameTime);
@@ -183,6 +191,14 @@ public class FastJumpGame : Game
         player.Position.Y = moveData.Y;
         player.Direction = (Direction)moveData.Direction;
         player.Animation = (Animation)moveData.Animation;
+    }
+    
+    private void HandleUpdateScore(int fromId, Data data)
+    {
+        if (data is not UpdateScoreData scoreData) return;
+
+        Player player = players[scoreData.Id].Player;
+        player.Score = scoreData.Score;
     }
     
     public void OnDisconnect(int id)

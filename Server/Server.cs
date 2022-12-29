@@ -36,6 +36,7 @@ public class Server
                 Animation = (byte)pair.Value.Animation
             });
 
+            // If this player fell out of the map, reset it's position.
             if (pair.Value.Position.Y > mapData.TileSize * mapData.Height)
             {
                 Messaging.Server.SendMessageToAll(Message.MessageType.MovePlayer, new MovePlayerData
@@ -45,6 +46,19 @@ public class Server
                     Y = mapData.SpawnPos.Y,
                     Direction = (byte)Direction.Right,
                     Animation = (byte)Animation.PlayerIdle
+                });
+            }
+            
+            if (pair.Value.Score != 0) continue;
+
+            float distToStart = (pair.Value.Position - mapData.SpawnPos).Length();
+            if (distToStart > mapData.TileSize)
+            {
+                pair.Value.Score = Player.StartingScore;
+                Messaging.Server.SendMessageToAll(Message.MessageType.UpdateScore, new UpdateScoreData
+                {
+                    Id = pair.Key,
+                    Score = pair.Value.Score
                 });
             }
         }

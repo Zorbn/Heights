@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 using Microsoft.Xna.Framework;
 using Shared;
 
@@ -6,24 +9,7 @@ namespace FastJump;
 
 public class Sprite
 {
-    private const float AnimationSpeed = 8f;
-    private static readonly Dictionary<Animation, Frame[]> Animations = new()
-    {
-        { Animation.PlayerIdle, new Frame[]{ new() {X = 0, Y = 0} } },
-        { 
-            Animation.PlayerRunning, new Frame[]
-            {
-                new() {X = 0, Y = 0},
-                new() {X = 0, Y = 2},
-                new() {X = 0, Y = 4},
-                new() {X = 0, Y = 6},
-                new() {X = 0, Y = 8},
-                new() {X = 0, Y = 10},
-                new() {X = 0, Y = 12},
-                new() {X = 0, Y = 14},
-            } 
-        },
-    };
+    private static readonly Dictionary<Animation, AnimationData> Animations = new();
     
     public Vector2 Position { get; private set; }
     private Animation currentAnimation = Animation.PlayerIdle;
@@ -55,8 +41,28 @@ public class Sprite
             animationTime = 0;
         }
 
-        animationTime += deltaTime * AnimationSpeed;
-        int frameIndex = (int)animationTime % Animations[currentAnimation].Length;
-        return Animations[currentAnimation][frameIndex];
+        AnimationData animationData = Animations[currentAnimation];
+        animationTime += deltaTime * animationData.Speed;
+        int frameIndex;
+        if (animationData.Loop)
+        {
+            frameIndex = (int)animationTime % animationData.Frames.Length;
+        }
+        else
+        {
+            frameIndex = Math.Min((int)animationTime, animationData.Frames.Length - 1);
+        }
+        
+        return animationData.Frames[frameIndex];
+    }
+
+    public static void LoadAnimation(Animation target, string path)
+    {
+        string text = File.ReadAllText(path);
+        object dataObj = JsonSerializer.Deserialize(text, typeof(AnimationData));
+
+        if (dataObj is not AnimationData newAnimationData) throw new ArgumentException("Failed to load animation json!");
+        
+        Animations.Add(target, newAnimationData);
     }
 }

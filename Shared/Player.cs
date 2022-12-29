@@ -4,6 +4,7 @@ namespace Shared;
 
 public class Player
 {
+    public const int StartingScore = 1000;
     private static readonly Vector2 HitBoxSize = new(8f, 14f);
     private const float JumpForce = 1.5f;
     private const float ExtraHeightGravityMultiplier = 0.5f;
@@ -12,6 +13,7 @@ public class Player
     public Vector2 Position;
     public Direction Direction = Direction.Right;
     public Animation Animation = Animation.PlayerIdle;
+    public int Score;
 
     private float velocity;
     private bool grounded;
@@ -29,17 +31,22 @@ public class Player
         
         move.X = horizontalDir;
 
-        if (move.X > 0f)
+        Direction = move.X switch
         {
-            Direction = Direction.Right;
+            > 0f => Direction.Right,
+            < 0f => Direction.Left,
+            _ => Direction
+        };
+
+        if (grounded)
+        {
+            Animation = move.X != 0f ? Animation.PlayerRunning : Animation.PlayerIdle;
         }
-        else if (move.X < 0f)
+        else
         {
-            Direction = Direction.Left;
+            Animation = Animation.PlayerJumping;
         }
 
-        Animation = move.X != 0f ? Animation.PlayerRunning : Animation.PlayerIdle;
-        
         newPosition.X += move.X * Speed * deltaTime;
         
         if (!noClip && mapData.IsCollidingWith(newPosition, HitBoxSize))

@@ -3,5 +3,6 @@
 public enum Animation : byte
 {
     PlayerIdle,
-    PlayerRunning
+    PlayerRunning,
+    PlayerJumping
 }

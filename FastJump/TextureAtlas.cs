@@ -8,12 +8,16 @@ public class TextureAtlas
     // Prevent textures occasionally bleeding together on the edges.
     public const float Padding = 0.01f;
     public readonly int TileSize;
+    public readonly int Width;
+    public readonly int Height;
     
     private readonly Texture2D texture;
 
     public TextureAtlas(GraphicsDevice graphicsDevice, string path, int tileSize)
     {
         texture = Texture2D.FromFile(graphicsDevice, path);
+        Width = texture.Width / tileSize;
+        Height = texture.Height / tileSize;
         TileSize = tileSize;
     }
 

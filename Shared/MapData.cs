@@ -67,7 +67,7 @@ public class MapData
         {
             for (var x = 0; x < Width; x++)
             {
-                if (GetTile(x, y) != '/') continue;
+                if (GetTile(x, y) != '[') continue;
                 SpawnPos = new Vector2((x + 0.5f) * TileSize, (y + 0.5f) * TileSize);
                 break;
             }

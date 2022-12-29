@@ -36,7 +36,13 @@ public struct MovePlayerData : Data
     [JsonInclude] public byte Direction;
     [JsonInclude] public byte Animation;
 }
-    
+
+public struct UpdateScoreData : Data
+{
+    [JsonInclude] public int Id;
+    [JsonInclude] public int Score;
+}
+
 public class Message
 {
     public enum MessageType
@@ -45,7 +51,8 @@ public class Message
         ExampleNotification,
         SpawnPlayer,
         MovePlayer,
-        DestroyPlayer
+        DestroyPlayer,
+        UpdateScore
     }
     
     public static Type ToDataType(MessageType messageType) => messageType switch
@@ -55,6 +62,7 @@ public class Message
         MessageType.SpawnPlayer => typeof(SpawnPlayerData),
         MessageType.MovePlayer => typeof(MovePlayerData),
         MessageType.DestroyPlayer => typeof(DestroyPlayerData),
+        MessageType.UpdateScore => typeof(UpdateScoreData),
         _ => throw new ArgumentOutOfRangeException($"No data type corresponds to {messageType}!")
     };
 

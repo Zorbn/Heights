@@ -25,13 +25,14 @@ public class Map
                 char currentTile = MapData.Data[x + y * MapData.Width];
                 if (currentTile == ' ') continue;
 
-                int atlasIndex = MapData.Palette[currentTile].TextureIndex;
+                int atlasX = MapData.Palette[currentTile].TextureIndex % atlas.Width;
+                int atlasY = MapData.Palette[currentTile].TextureIndex / atlas.Width;
 
                 if (!MapData.Palette[currentTile].AutoTile)
                 {
                     var tilePos = new Vector2((x + 0.5f) * MapData.TileSize,
                         (y + 0.5f) * MapData.TileSize);
-                    atlas.Draw(batch, camera, tilePos, atlasIndex, 0, 2, 2, Color.White);
+                    atlas.Draw(batch, camera, tilePos, atlasX, atlasY, 2, 2, Color.White);
                     
                     continue;
                 }
@@ -58,7 +59,7 @@ public class Map
                     
                     var subTilePos = new Vector2((x + 0.5f + 0.5f * xOff) * MapData.TileSize,
                         (y + 0.5f + 0.5f * yOff) * MapData.TileSize);
-                    atlas.Draw(batch, camera, subTilePos, atlasIndex + subOffX, subOffY, 1, 1, Color.White);
+                    atlas.Draw(batch, camera, subTilePos, atlasX + subOffX, atlasY + subOffY, 1, 1, Color.White);
                 }
             }
         }

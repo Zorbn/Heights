@@ -118,6 +118,6 @@ public class MessageStream
         int offset = 2 * sizeof(int); // Length of message length and type
         Data data = (Data) ByteUtils.ByteArrayToObject( Message.ToDataType(messageType), dataBuffer.GetRange(offset, length - offset).ToArray());
         
-        messageHandlers[messageType](Id, data!);
+        messageHandlers[messageType](Id, data);
     }
 }

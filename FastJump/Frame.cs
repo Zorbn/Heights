@@ -1,7 +1,9 @@
-﻿namespace FastJump;
+﻿using System.Text.Json.Serialization;
+
+namespace FastJump;
 
 public struct Frame
 {
-    public int X;
-    public int Y;
+    [JsonInclude] public int X;
+    [JsonInclude] public int Y;
 }
