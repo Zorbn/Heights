@@ -9,20 +9,28 @@ using Shared;
 
 namespace FastJump;
 
+/* TODO:
+ * Menu to choose IP and start the game.
+ * Goal flag that the players try to reach.
+ * Score/time that is awarded to players when they reach the goal.
+ * Make the map larger/improve the map's textures.
+ * Change the player's sprite when moving.
+ */
+
 public class FastJumpGame : Game
 {
     public const int VirtualScreenWidth = 320;
     public const int VirtualScreenHeight = 180;
     public const int WindowDefaultSizeMultiplier = 2;
     
-    private const float PlayerSpeed = 200f;
-    private const float SpriteInterpSpeed = 10f;
+    private const float SpriteInterpSpeed = 20f;
     
     private GraphicsDeviceManager graphics;
     private SpriteBatch spriteBatch;
     private TextureAtlas textureAtlas;
     
     private Dictionary<int, PlayerData> players = new();
+    private Map map;
     private Camera camera;
     private int localId = -1;
     
@@ -41,6 +49,7 @@ public class FastJumpGame : Game
     protected override void Initialize()
     {
         textureAtlas = new TextureAtlas(GraphicsDevice, "Content/atlas.png", 8);
+        map = new Map("Content/map.json");
         camera = new Camera(VirtualScreenWidth, VirtualScreenHeight);
      
         Dictionary<Message.MessageType, MessageStream.MessageHandler> messageHandlers = new()
@@ -89,40 +98,21 @@ public class FastJumpGame : Game
         if (!players.TryGetValue(localId, out PlayerData playerData)) return;
 
         Player player = playerData.Player;
+
+        var dir = 0f;
+        if (keyState.IsKeyDown(Keys.Left)) dir -= 1f;
+        if (keyState.IsKeyDown(Keys.Right)) dir += 1f;
+        bool tryJump = keyState.IsKeyDown(Keys.Space);
+        bool noClip = keyState.IsKeyDown(Keys.N);
+        player.Move(dir, tryJump, noClip, map.MapData, deltaTime);
         
-        Vector2 move = Vector2.Zero;
-
-        if (keyState.IsKeyDown(Keys.Left))
+        Client.SendMessage(Message.MessageType.MovePlayer, new MovePlayerData
         {
-            move.X -= 1f;
-        }
-
-        if (keyState.IsKeyDown(Keys.Right))
-        {
-            move.X += 1f;
-        }
-
-        if (keyState.IsKeyDown(Keys.Up))
-        {
-            move.Y -= 1f;
-        }
-
-        if (keyState.IsKeyDown(Keys.Down))
-        {
-            move.Y += 1f;
-        }
-
-        if (move.Length() != 0f)
-        {
-            move.Normalize();
-            player.Position += move * PlayerSpeed * deltaTime;
-            Client.SendMessage(Message.MessageType.MovePlayer, new MovePlayerData
-            {
-                Id = localId,
-                X = player.Position.X,
-                Y = player.Position.Y
-            });
-        }
+            Id = localId,
+            X = player.Position.X,
+            Y = player.Position.Y,
+            Direction = (byte)player.Direction
+        });
     }
 
     protected override void Draw(GameTime gameTime)
@@ -134,6 +124,8 @@ public class FastJumpGame : Game
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
         spriteBatch.Begin(samplerState: SamplerState.PointClamp);
+
+        map.Draw(textureAtlas, spriteBatch, camera);
 
         KeyValuePair<int, PlayerData>[] drawablePlayers = players.ToArray();
         foreach (KeyValuePair<int, PlayerData> pair in drawablePlayers)
@@ -147,10 +139,10 @@ public class FastJumpGame : Game
                 pair.Value.Sprite.StepTowards(pair.Value.Player.Position, deltaTime * SpriteInterpSpeed);
             }
 
-            textureAtlas.Draw(spriteBatch, camera, pair.Value.Sprite.Position, 0, 0, 2, 2, Color.White);
+            bool flipped = pair.Value.Player.Direction == Direction.Left;
+            textureAtlas.Draw(spriteBatch, camera, pair.Value.Sprite.Position, 0, 0, 2, 2, Color.White, 1f, 0f, flipped);
         }
-
-        textureAtlas.Draw(spriteBatch, camera, new Vector2(16, 0), 2, 0, 2, 2, Color.White);
+        
         spriteBatch.End();
 
         base.Draw(gameTime);
@@ -183,6 +175,7 @@ public class FastJumpGame : Game
         Player player = players[moveData.Id].Player;
         player.Position.X = moveData.X;
         player.Position.Y = moveData.Y;
+        player.Direction = (Direction)moveData.Direction;
     }
     
     public void OnDisconnect(int id)

@@ -1,17 +1,18 @@
 ﻿using Messaging;
-using Microsoft.Xna.Framework;
 using Shared;
 
 namespace Server;
 
 public class Server
 {
-    private Dictionary<int, Player> players = new();
-    private Random random = new();
-    private const float SpawnRadius = 48f;
+    private readonly Dictionary<int, Player> players = new();
+    private readonly MapData mapData;
 
     public Server()
     {
+        mapData = MapData.LoadFromFile("Content/map.json");
+        mapData.FindSpawnPos();
+        
         Dictionary<Message.MessageType, MessageStream.MessageHandler> messageHandlers = new()
         {
             { Message.MessageType.ExampleNotification, ExampleNotification.HandleNotification },
@@ -30,17 +31,15 @@ public class Server
             {
                 Id = pair.Key,
                 X = pair.Value.Position.X,
-                Y = pair.Value.Position.Y
+                Y = pair.Value.Position.Y,
+                Direction = (byte)pair.Value.Direction
             });
         }
     }
     
     private void OnConnect(int id)
     {
-        var newPlayer = new Player(new Vector2(
-            random.NextSingle() * SpawnRadius,
-            random.NextSingle() * SpawnRadius
-        ));
+        var newPlayer = new Player(mapData.SpawnPos);
         players.Add(id, newPlayer);
         
         // Tell old players about the new player.
@@ -73,16 +72,6 @@ public class Server
         });
     }
 
-    private void SendExampleNotification(int clientId)
-    {
-        ExampleNotificationData exampleNotificationData = new()
-        {
-            Text = "aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaa1000"
-        };
-            
-        Messaging.Server.SendMessage(clientId, Message.MessageType.ExampleNotification, exampleNotificationData);
-    }
-
     private void HandleMovePlayer(int fromId, Data data)
     {
         if (data is not MovePlayerData moveData) return;
@@ -90,5 +79,6 @@ public class Server
         Player player = players[fromId];
         player.Position.X = moveData.X;
         player.Position.Y = moveData.Y;
+        player.Direction = (Direction)moveData.Direction;
     }
 }

@@ -6,19 +6,16 @@ public interface Data
 {
 }
 
-[Serializable]
 public struct InitializeData : Data
 {
     [JsonInclude] public int Id;
 }
 
-[Serializable]
 public struct ExampleNotificationData : Data
 {
     [JsonInclude] public string Text;
 }
 
-[Serializable]
 public struct SpawnPlayerData : Data
 {
     [JsonInclude] public int Id;
@@ -26,18 +23,17 @@ public struct SpawnPlayerData : Data
     [JsonInclude] public float Y;
 }
 
-[Serializable]
 public struct DestroyPlayerData : Data
 {
     [JsonInclude] public int Id;
 }
 
-[Serializable]
 public struct MovePlayerData : Data
 {
     [JsonInclude] public int Id;
     [JsonInclude] public float X;
     [JsonInclude] public float Y;
+    [JsonInclude] public byte Direction;
 }
     
 public class Message

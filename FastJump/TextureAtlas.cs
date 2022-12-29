@@ -15,7 +15,7 @@ public class TextureAtlas
     }
 
     public void Draw(SpriteBatch batch, Camera camera, Vector2 position, int texX, int texY, int texW, int texH,
-        Color color, float scale = 1f, float rotation = 0f)
+        Color color, float scale = 1f, float rotation = 0f, bool flipped = false)
     {
         if (camera.Cull)
         {
@@ -32,8 +32,9 @@ public class TextureAtlas
         var srcRect = new Rectangle(texX * TileSize, texY * TileSize, texW * TileSize, texH * TileSize);
         var halfSize = new Vector2(srcRect.Width * 0.5f, srcRect.Height * 0.5f);
         Vector2 drawPos = (position + halfSize - camera.Position) * camera.Scale;
-
-        batch.Draw(texture, drawPos, srcRect, color, rotation, halfSize, size, SpriteEffects.None, 0f);
+        SpriteEffects spriteEffects = flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
+        
+        batch.Draw(texture, drawPos, srcRect, color, rotation, halfSize, size, spriteEffects, 0f);
     }
 
     public int GetAtlasSize(float size)
