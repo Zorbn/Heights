@@ -72,11 +72,26 @@ public class GameServer
                 });
 
             bool updatedScore = false;
+            bool updatedHighScore = false;
             if (pair.Value.Score != 0)
             {
                 if (decayScore)
                 {
                     pair.Value.Score -= 10;
+                    updatedScore = true;
+                }
+                
+                // If the player has points and reached the goal, try to cash in those points.
+                float distToEnd = (pair.Value.Position - mapData.EndPos).Length();
+                if (distToEnd < mapData.TileSize)
+                {
+                    if (pair.Value.Score > pair.Value.HighScore)
+                    {
+                        pair.Value.HighScore = pair.Value.Score;
+                        updatedHighScore = true;
+                    }
+
+                    pair.Value.Score = 0;
                     updatedScore = true;
                 }
             }
@@ -97,6 +112,15 @@ public class GameServer
                 {
                     Id = pair.Key,
                     Score = pair.Value.Score
+                });
+            }
+            
+            if (updatedHighScore)
+            {
+                Server.SendMessageToAll(Message.MessageType.UpdateHighScore, new UpdateHighScoreData
+                {
+                    Id = pair.Key,
+                    HighScore = pair.Value.HighScore
                 });
             }
         }

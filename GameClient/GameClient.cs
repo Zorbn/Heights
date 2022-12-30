@@ -11,7 +11,6 @@ namespace GameClient;
 
 /* TODO:
  * Menu to choose IP and start the game.
- * Score/time that is awarded to players when they reach the goal.
  * Make the map larger.
  */
 
@@ -62,7 +61,8 @@ public class GameClient : Game
             { Message.MessageType.DestroyPlayer, HandleDestroyPlayer },
             { Message.MessageType.MovePlayer, HandleMovePlayer },
             { Message.MessageType.Heartbeat, HandleHeartbeat },
-            { Message.MessageType.UpdateScore, HandleUpdateScore }
+            { Message.MessageType.UpdateScore, HandleUpdateScore },
+            { Message.MessageType.UpdateHighScore, HandleUpdateHighScore }
         };
 
         Client.StartClient("127.0.0.1", messageHandlers, OnDisconnect, OnConnect, OnConnectFailed, OnInitialized);
@@ -152,7 +152,8 @@ public class GameClient : Game
         if (TryGetLocalPlayer(out PlayerData playerData))
         {
             Player player = playerData.Player;
-            TextRenderer.Draw($"SCORE:{player.Score}", 8, 8, textureAtlas, spriteBatch, uiCamera);
+            string scoreText = player.Score == 0 ? $"HIGH SCORE:{player.HighScore}" : $"SCORE:{player.Score}";
+            TextRenderer.Draw(scoreText, 8, 8, textureAtlas, spriteBatch, uiCamera);
         }
 
         spriteBatch.End();
@@ -210,6 +211,14 @@ public class GameClient : Game
 
         Player player = players[scoreData.Id].Player;
         player.Score = scoreData.Score;
+    }
+    
+    private void HandleUpdateHighScore(int fromId, IData data)
+    {
+        if (data is not UpdateHighScoreData scoreData) return;
+
+        Player player = players[scoreData.Id].Player;
+        player.HighScore = scoreData.HighScore;
     }
 
     private void OnDisconnect(int id)

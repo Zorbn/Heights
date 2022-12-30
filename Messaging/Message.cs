@@ -38,6 +38,13 @@ public struct UpdateScoreData : IData
     [JsonInclude] public int Score;
 }
 
+public struct UpdateHighScoreData : IData
+{
+    [JsonInclude] public int Id;
+    [JsonInclude] public int HighScore;
+}
+
+
 public struct HeartbeatData : IData
 {
 }
@@ -51,11 +58,11 @@ public class Message
     public enum MessageType
     {
         Initialize,
-        ExampleNotification,
         SpawnPlayer,
         MovePlayer,
         DestroyPlayer,
         UpdateScore,
+        UpdateHighScore,
         Heartbeat,
         Disconnect
     }
@@ -79,6 +86,7 @@ public class Message
             MessageType.MovePlayer => typeof(MovePlayerData),
             MessageType.DestroyPlayer => typeof(DestroyPlayerData),
             MessageType.UpdateScore => typeof(UpdateScoreData),
+            MessageType.UpdateHighScore => typeof(UpdateHighScoreData),
             MessageType.Heartbeat => typeof(HeartbeatData),
             MessageType.Disconnect => typeof(DisconnectData),
             _ => throw new ArgumentOutOfRangeException($"No data type corresponds to {messageType}!")

@@ -16,6 +16,7 @@ public class Player
 
     public Vector2 Position;
     public int Score;
+    public int HighScore;
 
     private float velocity;
 
