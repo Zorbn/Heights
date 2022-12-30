@@ -2,33 +2,33 @@
 
 namespace Messaging;
 
-public interface Data
+public interface IData
 {
 }
 
-public struct InitializeData : Data
+public struct InitializeData : IData
 {
     [JsonInclude] public int Id;
 }
 
-public struct ExampleNotificationData : Data
+public struct ExampleNotificationData : IData
 {
     [JsonInclude] public string Text;
 }
 
-public struct SpawnPlayerData : Data
+public struct SpawnPlayerData : IData
 {
     [JsonInclude] public int Id;
     [JsonInclude] public float X;
     [JsonInclude] public float Y;
 }
 
-public struct DestroyPlayerData : Data
+public struct DestroyPlayerData : IData
 {
     [JsonInclude] public int Id;
 }
 
-public struct MovePlayerData : Data
+public struct MovePlayerData : IData
 {
     [JsonInclude] public int Id;
     [JsonInclude] public float X;
@@ -37,10 +37,18 @@ public struct MovePlayerData : Data
     [JsonInclude] public byte Animation;
 }
 
-public struct UpdateScoreData : Data
+public struct UpdateScoreData : IData
 {
     [JsonInclude] public int Id;
     [JsonInclude] public int Score;
+}
+
+public struct HeartbeatData : IData
+{
+}
+
+public struct DisconnectData : IData
+{
 }
 
 public class Message
@@ -52,34 +60,42 @@ public class Message
         SpawnPlayer,
         MovePlayer,
         DestroyPlayer,
-        UpdateScore
+        UpdateScore,
+        Heartbeat,
+        Disconnect
     }
-    
-    public static Type ToDataType(MessageType messageType) => messageType switch
-    {
-        MessageType.Initialize => typeof(InitializeData),
-        MessageType.ExampleNotification => typeof(ExampleNotificationData),
-        MessageType.SpawnPlayer => typeof(SpawnPlayerData),
-        MessageType.MovePlayer => typeof(MovePlayerData),
-        MessageType.DestroyPlayer => typeof(DestroyPlayerData),
-        MessageType.UpdateScore => typeof(UpdateScoreData),
-        _ => throw new ArgumentOutOfRangeException($"No data type corresponds to {messageType}!")
-    };
 
-    private readonly MessageType messageType; 
-    private readonly Data data;
+    private readonly IData data;
 
-    public Message(MessageType messageType, Data data)
+    private readonly MessageType messageType;
+
+    public Message(MessageType messageType, IData data)
     {
         this.messageType = messageType;
         this.data = data;
+    }
+
+    public static Type ToDataType(MessageType messageType)
+    {
+        return messageType switch
+        {
+            MessageType.Initialize => typeof(InitializeData),
+            MessageType.ExampleNotification => typeof(ExampleNotificationData),
+            MessageType.SpawnPlayer => typeof(SpawnPlayerData),
+            MessageType.MovePlayer => typeof(MovePlayerData),
+            MessageType.DestroyPlayer => typeof(DestroyPlayerData),
+            MessageType.UpdateScore => typeof(UpdateScoreData),
+            MessageType.Heartbeat => typeof(HeartbeatData),
+            MessageType.Disconnect => typeof(DisconnectData),
+            _ => throw new ArgumentOutOfRangeException($"No data type corresponds to {messageType}!")
+        };
     }
 
     public byte[] ToByteArray()
     {
         List<byte> bytes = new();
         bytes.AddRange(ByteUtils.ObjectToByteArray(ToDataType(messageType), data));
-        bytes.InsertRange(0, BitConverter.GetBytes((int) messageType));
+        bytes.InsertRange(0, BitConverter.GetBytes((int)messageType));
         bytes.InsertRange(0, BitConverter.GetBytes(bytes.Count + sizeof(int))); // Add message length
 
         return bytes.ToArray();

@@ -7,35 +7,34 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Shared;
 
-namespace FastJump;
+namespace GameClient;
 
 /* TODO:
  * Menu to choose IP and start the game.
- * Goal flag that the players try to reach.
  * Score/time that is awarded to players when they reach the goal.
  * Make the map larger.
  */
 
-public class FastJumpGame : Game
+public class GameClient : Game
 {
-    public const int VirtualScreenWidth = 320;
-    public const int VirtualScreenHeight = 180;
-    public const int WindowDefaultSizeMultiplier = 2;
-    
+    private const int VirtualScreenWidth = 320;
+    private const int VirtualScreenHeight = 180;
+    private const int WindowDefaultSizeMultiplier = 2;
+
     private const float SpriteInterpSpeed = 20f;
     private const float CameraInterpSpeed = 20f;
-    
-    private GraphicsDeviceManager graphics;
+    private Camera camera;
+
+    private readonly GraphicsDeviceManager graphics;
+    private int localId = -1;
+    private Map map;
+
+    private readonly Dictionary<int, PlayerData> players = new();
     private SpriteBatch spriteBatch;
     private TextureAtlas textureAtlas;
-    
-    private Dictionary<int, PlayerData> players = new();
-    private Map map;
-    private Camera camera;
     private Camera uiCamera;
-    private int localId = -1;
-    
-    public FastJumpGame()
+
+    public GameClient()
     {
         graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
@@ -56,16 +55,17 @@ public class FastJumpGame : Game
         map = new Map("Content/map.json");
         camera = new Camera(VirtualScreenWidth, VirtualScreenHeight);
         uiCamera = new Camera(VirtualScreenWidth, VirtualScreenHeight, false);
-     
+
         Dictionary<Message.MessageType, MessageStream.MessageHandler> messageHandlers = new()
         {
             { Message.MessageType.ExampleNotification, ExampleNotification.HandleNotification },
             { Message.MessageType.SpawnPlayer, HandleSpawnPlayer },
             { Message.MessageType.DestroyPlayer, HandleDestroyPlayer },
             { Message.MessageType.MovePlayer, HandleMovePlayer },
-            // { Message.MessageType.UpdateScore, HandleUpdateScore }
+            { Message.MessageType.Heartbeat, HandleHeartbeat },
+            { Message.MessageType.UpdateScore, HandleUpdateScore }
         };
-        
+
         Client.StartClient("127.0.0.1", messageHandlers, OnDisconnect, OnConnect, OnConnectFailed, OnInitialized);
 
         base.Initialize();
@@ -79,27 +79,31 @@ public class FastJumpGame : Game
     protected override void Update(GameTime gameTime)
     {
         KeyboardState keyState = Keyboard.GetState();
-        
+
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
             keyState.IsKeyDown(Keys.Escape))
             Exit();
 
         var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-        if (keyState.IsKeyDown(Keys.S))
-        {
-            SendExampleNotification();
-        }
+        if (keyState.IsKeyDown(Keys.S)) SendExampleNotification();
 
         LocalUpdate(keyState, deltaTime);
 
         base.Update(gameTime);
     }
 
+    private bool TryGetLocalPlayer(out PlayerData playerData)
+    {
+        playerData = null;
+        
+        if (localId == -1) return false;
+        return players.TryGetValue(localId, out playerData);
+    }
+
     private void LocalUpdate(KeyboardState keyState, float deltaTime)
     {
-        if (localId == -1) return;
-        if (!players.TryGetValue(localId, out PlayerData playerData)) return;
+        if (!TryGetLocalPlayer(out PlayerData playerData)) return;
 
         Player player = playerData.Player;
 
@@ -110,7 +114,7 @@ public class FastJumpGame : Game
         bool noClip = keyState.IsKeyDown(Keys.N);
         player.Move(dir, tryJump, noClip, map.MapData, deltaTime);
         camera.StepTowards(player.Position + new Vector2(map.MapData.TileSize * 0.5f), CameraInterpSpeed * deltaTime);
-        
+
         Client.SendMessage(Message.MessageType.MovePlayer, new MovePlayerData
         {
             Id = localId,
@@ -124,10 +128,10 @@ public class FastJumpGame : Game
     protected override void Draw(GameTime gameTime)
     {
         var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-        
+
         camera.ScaleToScreen(Window.ClientBounds.Width, Window.ClientBounds.Height);
         uiCamera.ScaleToScreen(Window.ClientBounds.Width, Window.ClientBounds.Height);
-        
+
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
         spriteBatch.Begin(samplerState: SamplerState.PointClamp);
@@ -138,22 +142,19 @@ public class FastJumpGame : Game
         foreach (KeyValuePair<int, PlayerData> pair in drawablePlayers)
         {
             if (pair.Key == localId)
-            {
                 pair.Value.Sprite.Teleport(pair.Value.Player.Position);
-            }
             else
-            {
                 pair.Value.Sprite.StepTowards(pair.Value.Player.Position, deltaTime * SpriteInterpSpeed);
-            }
 
             bool flipped = pair.Value.Player.Direction == Direction.Left;
             Frame frame = pair.Value.Sprite.UpdateAnimation(pair.Value.Player.Animation, deltaTime);
-            textureAtlas.Draw(spriteBatch, camera, pair.Value.Sprite.Position, frame.X, frame.Y, 2, 2, Color.White, 1f, 0f, flipped);
+            textureAtlas.Draw(spriteBatch, camera, pair.Value.Sprite.Position, frame.X, frame.Y, 2, 2, Color.White, 1f,
+                0f, flipped);
         }
 
-        if (localId != -1)
+        if (TryGetLocalPlayer(out PlayerData playerData))
         {
-            Player player = players[localId].Player;
+            Player player = playerData.Player;
             TextRenderer.Draw($"SCORE {player.Score}", 8, 8, textureAtlas, spriteBatch, uiCamera);
         }
 
@@ -162,27 +163,35 @@ public class FastJumpGame : Game
         base.Draw(gameTime);
     }
 
-    private void HandleSpawnPlayer(int fromId, Data data)
+    protected override void Dispose(bool disposing)
+    {
+        Client.SendMessage(Message.MessageType.Disconnect, new DisconnectData());
+        Client.StopClient();
+
+        base.Dispose(disposing);
+    }
+
+    private void HandleSpawnPlayer(int fromId, IData data)
     {
         if (data is not SpawnPlayerData spawnData) return;
 
         var playerPos = new Vector2(spawnData.X, spawnData.Y);
-        
+
         players.Add(spawnData.Id, new PlayerData
         {
             Player = new Player(playerPos),
             Sprite = new Sprite(playerPos)
         });
     }
-    
-    private void HandleDestroyPlayer(int fromId, Data data)
+
+    private void HandleDestroyPlayer(int fromId, IData data)
     {
         if (data is not DestroyPlayerData destroyData) return;
-        
+
         players.Remove(destroyData.Id);
     }
-    
-    private void HandleMovePlayer(int fromId, Data data)
+
+    private void HandleMovePlayer(int fromId, IData data)
     {
         if (data is not MovePlayerData moveData) return;
 
@@ -192,15 +201,20 @@ public class FastJumpGame : Game
         player.Direction = (Direction)moveData.Direction;
         player.Animation = (Animation)moveData.Animation;
     }
-    
-    private void HandleUpdateScore(int fromId, Data data)
+
+    private void HandleHeartbeat(int fromId, IData data)
+    {
+        Client.SendMessage(Message.MessageType.Heartbeat, new HeartbeatData());
+    }
+
+    private void HandleUpdateScore(int fromId, IData data)
     {
         if (data is not UpdateScoreData scoreData) return;
 
         Player player = players[scoreData.Id].Player;
         player.Score = scoreData.Score;
     }
-    
+
     public void OnDisconnect(int id)
     {
         Console.WriteLine("Disconnected!");
@@ -218,18 +232,19 @@ public class FastJumpGame : Game
         Exit();
     }
 
-    public void OnInitialized(int localId)
+    public void OnInitialized(int newLocalId)
     {
-        this.localId = localId;
+        localId = newLocalId;
     }
 
     private void SendExampleNotification()
     {
         ExampleNotificationData exampleNotificationData = new()
         {
-            Text = "aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaa1000"
+            Text =
+                "aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaa1000"
         };
-            
+
         Client.SendMessage(Message.MessageType.ExampleNotification, exampleNotificationData);
     }
 }

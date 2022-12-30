@@ -1,8 +1,8 @@
 ﻿using Shared;
 
-namespace FastJump;
+namespace GameClient;
 
-public struct PlayerData
+public class PlayerData
 {
     public Player Player;
     public Sprite Sprite;

@@ -1,10 +1,10 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace FastJump;
+namespace GameClient;
 
 public class AnimationData
 {
-    [JsonInclude] public float Speed;
-    [JsonInclude] public bool Loop;
     [JsonInclude] public Frame[] Frames;
+    [JsonInclude] public bool Loop;
+    [JsonInclude] public float Speed;
 }

@@ -1,9 +1,9 @@
-﻿namespace Server;
+﻿namespace GameServer;
 
 internal static class Program
 {
     public static void Main()
     {
-        var server = new Server();
+        var server = new GameServer();
     }
 }

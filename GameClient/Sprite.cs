@@ -5,20 +5,20 @@ using System.Text.Json;
 using Microsoft.Xna.Framework;
 using Shared;
 
-namespace FastJump;
+namespace GameClient;
 
 public class Sprite
 {
     private static readonly Dictionary<Animation, AnimationData> Animations = new();
-    
-    public Vector2 Position { get; private set; }
-    private Animation currentAnimation = Animation.PlayerIdle;
     private float animationTime;
+    private Animation currentAnimation = Animation.PlayerIdle;
 
     public Sprite(Vector2 position)
     {
         Position = position;
     }
+
+    public Vector2 Position { get; private set; }
 
     public void Teleport(Vector2 position)
     {
@@ -45,14 +45,10 @@ public class Sprite
         animationTime += deltaTime * animationData.Speed;
         int frameIndex;
         if (animationData.Loop)
-        {
             frameIndex = (int)animationTime % animationData.Frames.Length;
-        }
         else
-        {
             frameIndex = Math.Min((int)animationTime, animationData.Frames.Length - 1);
-        }
-        
+
         return animationData.Frames[frameIndex];
     }
 
@@ -61,8 +57,9 @@ public class Sprite
         string text = File.ReadAllText(path);
         object dataObj = JsonSerializer.Deserialize(text, typeof(AnimationData));
 
-        if (dataObj is not AnimationData newAnimationData) throw new ArgumentException("Failed to load animation json!");
-        
+        if (dataObj is not AnimationData newAnimationData)
+            throw new ArgumentException("Failed to load animation json!");
+
         Animations.Add(target, newAnimationData);
     }
 }

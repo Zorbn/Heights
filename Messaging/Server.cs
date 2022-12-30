@@ -5,22 +5,23 @@ namespace Messaging;
 
 public static class Server
 {
+    public delegate void OnClientConnect(int id);
+
     public delegate void OnTick();
 
-    public delegate void OnClientConnect(int id);
-    
     private static TcpListener TcpListener;
     private static Dictionary<int, MessageStream> Clients;
     private static Dictionary<Message.MessageType, MessageStream.MessageHandler> MessageHandlers;
-    
+
     private static int TickRate;
 
     private static MessageStream.OnDisconnect OnDisconnectCallback;
     private static OnClientConnect OnClientConnectCallback;
     private static OnTick OnTickCallback;
-    
-    public static void StartServer(string ip, Dictionary<Message.MessageType, 
-        MessageStream.MessageHandler> messageHandlers, int tickRate, OnTick onTick, MessageStream.OnDisconnect onDisconnect, OnClientConnect onClientConnect)
+
+    public static void StartServer(string ip,
+        Dictionary<Message.MessageType, MessageStream.MessageHandler> messageHandlers, int tickRate, OnTick onTick,
+        MessageStream.OnDisconnect onDisconnect, OnClientConnect onClientConnect)
     {
         MessageHandlers = messageHandlers;
         Clients = new Dictionary<int, MessageStream>();
@@ -29,14 +30,21 @@ public static class Server
         OnDisconnectCallback = onDisconnect;
         OnTickCallback = onTick;
         OnClientConnectCallback = onClientConnect;
-            
+
         TcpListener = new TcpListener(IPAddress.Parse(ip), 8052);
         TcpListener.Start();
         TcpListener.BeginAcceptTcpClient(TcpConnectCallback, null);
 
         Tick();
-        
+
         SpinWait.SpinUntil(() => false);
+    }
+
+    public static void StopServer()
+    {
+        foreach (KeyValuePair<int, MessageStream> messageStream in Clients) messageStream.Value.StopReading();
+
+        TcpListener.Stop();
     }
 
     private static void Tick()
@@ -45,7 +53,7 @@ public static class Server
 
         OnTickCallback();
     }
-    
+
     private static void TcpConnectCallback(IAsyncResult result)
     {
         TcpClient client = TcpListener.EndAcceptTcpClient(result); // Finish accepting client
@@ -60,9 +68,15 @@ public static class Server
         {
             Id = newClientId
         };
-            
+
         Clients[newClientId].SendMessage(Message.MessageType.Initialize, initData);
         OnClientConnectCallback.Invoke(newClientId);
+    }
+
+    public static void Disconnect(int id)
+    {
+        if (!Clients.TryGetValue(id, out MessageStream clientStream)) return;
+        clientStream.StopReading();
     }
 
     private static void OnDisconnect(int id)
@@ -71,21 +85,18 @@ public static class Server
         OnDisconnectCallback(id);
     }
 
-    public static void SendMessage(int id, Message.MessageType type, Data data)
+    public static void SendMessage(int id, Message.MessageType type, IData data)
     {
         if (!Clients.ContainsKey(id)) return;
         Clients[id].SendMessage(type, data);
     }
 
-    public static void SendMessageToAll(Message.MessageType type, Data data)
+    public static void SendMessageToAll(Message.MessageType type, IData data)
     {
-        foreach (KeyValuePair<int, MessageStream> client in Clients)
-        {
-            SendMessage(client.Key, type, data);
-        }
+        foreach (KeyValuePair<int, MessageStream> client in Clients) SendMessage(client.Key, type, data);
     }
 
-    public static void SendMessageToAllExcluding(int excludedId, Message.MessageType type, Data data)
+    public static void SendMessageToAllExcluding(int excludedId, Message.MessageType type, IData data)
     {
         foreach (KeyValuePair<int, MessageStream> client in Clients)
         {

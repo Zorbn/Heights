@@ -1,17 +1,17 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace FastJump;
+namespace GameClient;
 
 public class TextureAtlas
 {
     // Prevent textures occasionally bleeding together on the edges.
     public const float Padding = 0.01f;
-    public readonly int TileSize;
     public readonly int Width;
     public readonly int Height;
-    
+
     private readonly Texture2D texture;
+    public readonly int TileSize;
 
     public TextureAtlas(GraphicsDevice graphicsDevice, string path, int tileSize)
     {
@@ -40,7 +40,7 @@ public class TextureAtlas
         var halfSize = new Vector2(srcRect.Width * 0.5f, srcRect.Height * 0.5f);
         Vector2 drawPos = (position + halfSize - camera.Position) * camera.Scale;
         SpriteEffects spriteEffects = flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
-        
+
         batch.Draw(texture, drawPos, srcRect, color, rotation, halfSize, size, spriteEffects, 0f);
     }
 

@@ -6,12 +6,12 @@ namespace Shared;
 
 public class MapData
 {
-    [JsonInclude] public int TileSize;
-    [JsonInclude] public int Width;
+    [JsonInclude] public char[] Data;
     [JsonInclude] public int Height;
     [JsonInclude] public Dictionary<char, TileData> Palette;
-    [JsonInclude] public char[] Data;
     public Vector2 SpawnPos;
+    [JsonInclude] public int TileSize;
+    [JsonInclude] public int Width;
 
     public MapData()
     {
@@ -22,26 +22,26 @@ public class MapData
     public static MapData LoadFromFile(string path)
     {
         string text = File.ReadAllText(path);
-        object? dataObj = JsonSerializer.Deserialize(text, typeof(MapData));
+        object dataObj = JsonSerializer.Deserialize(text, typeof(MapData));
 
         if (dataObj is not MapData newMapData) throw new ArgumentException("Failed to load map json!");
 
         return newMapData;
     }
-    
+
     public char GetTile(int x, int y)
     {
         if (x < 0 || x >= Width || y < 0 || y >= Height) return ' ';
         return Data[x + y * Width];
     }
-    
+
     public char GetTileAtWorldPos(float x, float y)
     {
         var tileX = (int)MathF.Floor(x / TileSize);
         var tileY = (int)MathF.Floor(y / TileSize);
         return GetTile(tileX, tileY);
     }
-    
+
     public bool IsCollidingWith(Vector2 position, Vector2 size)
     {
         for (var i = 0; i < 4; i++)
@@ -64,13 +64,11 @@ public class MapData
     public void FindSpawnPos()
     {
         for (var y = 0; y < Height; y++)
+        for (var x = 0; x < Width; x++)
         {
-            for (var x = 0; x < Width; x++)
-            {
-                if (GetTile(x, y) != '[') continue;
-                SpawnPos = new Vector2((x + 0.5f) * TileSize, (y + 0.5f) * TileSize);
-                break;
-            }
+            if (GetTile(x, y) != '[') continue;
+            SpawnPos = new Vector2((x + 0.5f) * TileSize, (y + 0.5f) * TileSize);
+            break;
         }
     }
 }

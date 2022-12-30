@@ -4,13 +4,13 @@ namespace Messaging;
 
 public static class ByteUtils
 {
-    public static byte[] ObjectToByteArray(Type dataType, Object obj)
+    public static byte[] ObjectToByteArray(Type dataType, object obj)
     {
         return JsonSerializer.SerializeToUtf8Bytes(obj, dataType);
     }
-    
-    public static Object ByteArrayToObject(Type dataType, byte[] arrBytes)
+
+    public static object ByteArrayToObject(Type dataType, byte[] arrBytes)
     {
-        return JsonSerializer.Deserialize(arrBytes, dataType)!;
+        return JsonSerializer.Deserialize(arrBytes, dataType);
     }
 }

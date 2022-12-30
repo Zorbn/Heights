@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace FastJump;
+namespace GameClient;
 
 public class TextRenderer
 {
@@ -13,7 +13,7 @@ public class TextRenderer
     public static void Draw(string text, int x, int y, TextureAtlas atlas, SpriteBatch batch, Camera camera)
     {
         text = text.ToUpper();
-        
+
         var i = 0;
         foreach (char c in text)
         {

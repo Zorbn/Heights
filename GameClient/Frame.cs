@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace FastJump;
+namespace GameClient;
 
 public struct Frame
 {

@@ -1,10 +1,10 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastJump", "FastJump\FastJump.csproj", "{78FBF58A-D6F2-4146-8D3A-E7AE2CF7B1D8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameClient", "GameClient\GameClient.csproj", "{78FBF58A-D6F2-4146-8D3A-E7AE2CF7B1D8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging", "Messaging\Messaging.csproj", "{DAFA1B50-E0C4-460A-AEF7-408D74164DF9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{047BFB0A-B46D-484F-A290-B62F1366E10E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameServer", "GameServer\GameServer.csproj", "{047BFB0A-B46D-484F-A290-B62F1366E10E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{5029B3CF-D5BC-4054-ACF2-4675406F916C}"
 EndProject

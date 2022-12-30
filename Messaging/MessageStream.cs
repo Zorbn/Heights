@@ -1,57 +1,86 @@
-﻿using System.Net.Sockets;
+﻿using System.Diagnostics;
+using System.Net.Sockets;
 
 namespace Messaging;
 
 public class MessageStream
 {
-    public const int DataBufferSize = 1024;
-    public int Id;
-        
-    private readonly byte[] incomingDataBuffer = new byte[DataBufferSize];
-    private readonly List<byte> storedData = new();
-        
-    private NetworkStream stream;
-
-    private bool hasNextMessageLength;
-    private int nextMessageLength;
+    public delegate void MessageHandler(int fromId, IData data);
 
     public delegate void OnDisconnect(int id);
 
-    private OnDisconnect onDisconnect;
-    public delegate void MessageHandler(int fromId, Data data);
-    private Dictionary<Message.MessageType, MessageHandler> messageHandlers;
+    public const int DataBufferSize = 1024;
+    private const long TimeoutMs = 5000;
 
-    public MessageStream(TcpClient socket, int id, Dictionary<Message.MessageType, MessageHandler> messageHandlers, OnDisconnect onDisconnect)
+    private readonly byte[] incomingDataBuffer = new byte[DataBufferSize];
+    private readonly List<byte> storedData = new();
+
+    private bool hasNextMessageLength;
+    public int Id;
+    private readonly Dictionary<Message.MessageType, MessageHandler> messageHandlers;
+    private int nextMessageLength;
+
+    private readonly OnDisconnect onDisconnect;
+    private bool reading;
+
+    private readonly NetworkStream stream;
+    private readonly Thread streamThread;
+
+    public MessageStream(TcpClient socket, int id, Dictionary<Message.MessageType, MessageHandler> messageHandlers,
+        OnDisconnect onDisconnect)
     {
         Id = id;
         this.messageHandlers = messageHandlers;
         this.onDisconnect = onDisconnect;
-        
         stream = socket.GetStream();
+        streamThread = new Thread(ReceiveProc);
     }
 
     public void StartReading()
     {
-        stream.BeginRead(incomingDataBuffer, 0, DataBufferSize, ReceiveCallback, null);
+        reading = true;
+        streamThread.Start();
     }
 
-    private void ReceiveCallback(IAsyncResult result)
+    public void StopReading()
+    {
+        reading = false;
+    }
+
+    private void ReceiveProc()
     {
         try
         {
-            int incomingDataLength = stream.EndRead(result);
-            if (incomingDataLength != 0) Read(incomingDataLength);
-            stream.BeginRead(incomingDataBuffer, 0, DataBufferSize, ReceiveCallback, null);
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            while (reading)
+            {
+                if (stopwatch.ElapsedMilliseconds > TimeoutMs) break;
+                if (!stream.DataAvailable) continue;
+
+                int incomingDataLength = stream.Read(incomingDataBuffer);
+                if (incomingDataLength != 0) Read(incomingDataLength);
+
+                stopwatch.Restart();
+            }
+
+            EndReceive();
         }
         catch
         {
-            stream.Dispose();
-            Console.WriteLine($"Stream closed with id of: {Id}!");
-            onDisconnect(Id);
+            EndReceive();
         }
     }
 
-    public void SendMessage(Message.MessageType type, Data data)
+    private void EndReceive()
+    {
+        stream.Dispose();
+        Console.WriteLine($"Stream closed with id of {Id}!");
+        onDisconnect(Id);
+    }
+
+    public void SendMessage(Message.MessageType type, IData data)
     {
         try
         {
@@ -70,16 +99,15 @@ public class MessageStream
             Console.WriteLine("Socket exception: " + socketException);
         }
     }
-        
+
     public void Read(int incomingDataLength)
     {
         // Read incoming stream into byte array. 						
-        byte[] trimmedData = new byte[incomingDataLength]; // Incoming data without any empty space					
+        var trimmedData = new byte[incomingDataLength]; // Incoming data without any empty space					
         Array.Copy(incomingDataBuffer, 0, trimmedData, 0, incomingDataLength);
         storedData.AddRange(trimmedData);
 
         while (storedData.Count > 0)
-        {
             if (hasNextMessageLength)
             {
                 if (storedData.Count >= nextMessageLength) // The whole message has been received
@@ -108,16 +136,16 @@ public class MessageStream
                     break; // Wait for more data
                 }
             }
-        }
     }
-        
+
     public void HandleData(List<byte> dataBuffer, int length)
     {
-        Message.MessageType messageType = (Message.MessageType)BitConverter.ToInt32(dataBuffer.ToArray(), sizeof(int));
-            
+        var messageType = (Message.MessageType)BitConverter.ToInt32(dataBuffer.ToArray(), sizeof(int));
+
         int offset = 2 * sizeof(int); // Length of message length and type
-        Data data = (Data) ByteUtils.ByteArrayToObject( Message.ToDataType(messageType), dataBuffer.GetRange(offset, length - offset).ToArray());
-        
+        var data = (IData)ByteUtils.ByteArrayToObject(Message.ToDataType(messageType),
+            dataBuffer.GetRange(offset, length - offset).ToArray());
+
         messageHandlers[messageType](Id, data);
     }
 }

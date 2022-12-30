@@ -2,21 +2,12 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace FastJump;
+namespace GameClient;
 
 public class Camera
 {
     public readonly bool Cull;
     private Vector2 offset;
-
-    public float Scale { get; private set; }
-
-    public Vector2 Position { get; private set; }
-
-    public int VirtualViewWidth { get; }
-    public int VirtualViewHeight { get; }
-    public int ViewWidth { get; private set; }
-    public int ViewHeight { get; private set; }
 
     public Camera(int virtualViewWidth, int virtualViewHeight, bool cull = true)
     {
@@ -29,13 +20,22 @@ public class Camera
 
         UpdateOffset();
     }
-    
+
+    public float Scale { get; private set; }
+
+    public Vector2 Position { get; private set; }
+
+    public int VirtualViewWidth { get; }
+    public int VirtualViewHeight { get; }
+    public int ViewWidth { get; private set; }
+    public int ViewHeight { get; private set; }
+
     public void Teleport(Vector2 target)
     {
         Vector2 newPos = target - offset;
         Position = newPos;
     }
-    
+
     public void StepTowards(Vector2 position, float delta)
     {
         Vector2 newPosition = Position;
