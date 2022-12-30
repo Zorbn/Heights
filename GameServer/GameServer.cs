@@ -20,7 +20,6 @@ public class GameServer
 
         Dictionary<Message.MessageType, MessageStream.MessageHandler> messageHandlers = new()
         {
-            { Message.MessageType.ExampleNotification, ExampleNotification.HandleNotification },
             { Message.MessageType.MovePlayer, HandleMovePlayer },
             { Message.MessageType.Disconnect, HandleDisconnect },
             { Message.MessageType.Heartbeat, (_, _) => { } }

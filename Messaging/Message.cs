@@ -11,11 +11,6 @@ public struct InitializeData : IData
     [JsonInclude] public int Id;
 }
 
-public struct ExampleNotificationData : IData
-{
-    [JsonInclude] public string Text;
-}
-
 public struct SpawnPlayerData : IData
 {
     [JsonInclude] public int Id;
@@ -80,7 +75,6 @@ public class Message
         return messageType switch
         {
             MessageType.Initialize => typeof(InitializeData),
-            MessageType.ExampleNotification => typeof(ExampleNotificationData),
             MessageType.SpawnPlayer => typeof(SpawnPlayerData),
             MessageType.MovePlayer => typeof(MovePlayerData),
             MessageType.DestroyPlayer => typeof(DestroyPlayerData),

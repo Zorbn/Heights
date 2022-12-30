@@ -58,7 +58,6 @@ public class GameClient : Game
 
         Dictionary<Message.MessageType, MessageStream.MessageHandler> messageHandlers = new()
         {
-            { Message.MessageType.ExampleNotification, ExampleNotification.HandleNotification },
             { Message.MessageType.SpawnPlayer, HandleSpawnPlayer },
             { Message.MessageType.DestroyPlayer, HandleDestroyPlayer },
             { Message.MessageType.MovePlayer, HandleMovePlayer },
@@ -85,9 +84,7 @@ public class GameClient : Game
             Exit();
 
         var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-        if (keyState.IsKeyDown(Keys.S)) SendExampleNotification();
-
+        
         LocalUpdate(keyState, deltaTime);
 
         base.Update(gameTime);
@@ -215,36 +212,25 @@ public class GameClient : Game
         player.Score = scoreData.Score;
     }
 
-    public void OnDisconnect(int id)
+    private void OnDisconnect(int id)
     {
         Console.WriteLine("Disconnected!");
         localId = -1;
     }
 
-    public void OnConnect()
+    private void OnConnect()
     {
         Console.WriteLine("Connected!");
     }
 
-    public void OnConnectFailed()
+    private void OnConnectFailed()
     {
         Console.WriteLine("Connection failed!");
         Exit();
     }
 
-    public void OnInitialized(int newLocalId)
+    private void OnInitialized(int newLocalId)
     {
         localId = newLocalId;
-    }
-
-    private void SendExampleNotification()
-    {
-        ExampleNotificationData exampleNotificationData = new()
-        {
-            Text =
-                "aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaaaa10aaaaaaa1000"
-        };
-
-        Client.SendMessage(Message.MessageType.ExampleNotification, exampleNotificationData);
     }
 }
