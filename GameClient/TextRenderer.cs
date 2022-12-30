@@ -8,7 +8,7 @@ public class TextRenderer
     public const int TextureXStart = 2;
     public const int TextureYStart = 12;
     public const int TextureCharsPerLine = 14;
-    public const string Characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.?!,$";
+    public const string Characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.?!,$:";
 
     public static void Draw(string text, int x, int y, TextureAtlas atlas, SpriteBatch batch, Camera camera)
     {

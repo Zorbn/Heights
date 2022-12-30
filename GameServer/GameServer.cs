@@ -6,17 +6,19 @@ namespace GameServer;
 public class GameServer
 {
     private const int TickRate = 20;
-    private const float TickTime = TickRate / 1000f;
+    private const float TickTime = 1f / TickRate;
     private const float HeartbeatTime = 1f;
+    private const float ScoreDecayTime = 1f;
     private readonly MapData mapData;
 
     private readonly Dictionary<int, Player> players = new();
     private float heartbeatTimer;
+    private float scoreDecayTimer;
 
     public GameServer()
     {
         mapData = MapData.LoadFromFile("Content/map.json");
-        mapData.FindSpawnPos();
+        mapData.FindSpecialPoints();
 
         Dictionary<Message.MessageType, MessageStream.MessageHandler> messageHandlers = new()
         {
@@ -34,8 +36,16 @@ public class GameServer
 
         if (heartbeatTimer > HeartbeatTime)
         {
-            heartbeatTimer = 0f;
+            heartbeatTimer -= HeartbeatTime;
             Server.SendMessageToAll(Message.MessageType.Heartbeat, new HeartbeatData());
+        }
+
+        scoreDecayTimer += TickTime;
+        bool decayScore = scoreDecayTimer > ScoreDecayTime;
+        
+        if (decayScore)
+        {
+            scoreDecayTimer -= ScoreDecayTime;
         }
 
         KeyValuePair<int, Player>[] allPlayerPairs = players.ToArray();
@@ -61,12 +71,28 @@ public class GameServer
                     Animation = (byte)Animation.PlayerIdle
                 });
 
-            if (pair.Value.Score != 0) continue;
-
-            float distToStart = (pair.Value.Position - mapData.SpawnPos).Length();
-            if (distToStart > mapData.TileSize)
+            bool updatedScore = false;
+            if (pair.Value.Score != 0)
             {
-                pair.Value.Score = Player.StartingScore;
+                if (decayScore)
+                {
+                    pair.Value.Score -= 10;
+                    updatedScore = true;
+                }
+            }
+            else
+            {
+                // If this player is near the start, give them points.
+                float distToStart = (pair.Value.Position - mapData.StartPos).Length();
+                if (distToStart < mapData.TileSize)
+                {
+                    pair.Value.Score = Player.StartingScore;
+                    updatedScore = true;
+                }
+            }
+
+            if (updatedScore)
+            {
                 Server.SendMessageToAll(Message.MessageType.UpdateScore, new UpdateScoreData
                 {
                     Id = pair.Key,

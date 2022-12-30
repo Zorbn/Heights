@@ -10,6 +10,8 @@ public class MapData
     [JsonInclude] public int Height;
     [JsonInclude] public Dictionary<char, TileData> Palette;
     public Vector2 SpawnPos;
+    public Vector2 StartPos;
+    public Vector2 EndPos;
     [JsonInclude] public int TileSize;
     [JsonInclude] public int Width;
 
@@ -61,14 +63,25 @@ public class MapData
         return false;
     }
 
-    public void FindSpawnPos()
+    public void FindSpecialPoints()
     {
         for (var y = 0; y < Height; y++)
         for (var x = 0; x < Width; x++)
         {
-            if (GetTile(x, y) != '[') continue;
-            SpawnPos = new Vector2((x + 0.5f) * TileSize, (y + 0.5f) * TileSize);
-            break;
+            var center = new Vector2((x + 0.5f) * TileSize, (y + 0.5f) * TileSize);
+            
+            switch (GetTile(x, y))
+            {
+                case '|':
+                    SpawnPos = center;
+                    break;
+                case '[':
+                    StartPos = center;
+                    break;
+                case ']':
+                    EndPos = center;
+                    break;
+            }
         }
     }
 }

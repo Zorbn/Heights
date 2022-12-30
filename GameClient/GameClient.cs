@@ -152,7 +152,7 @@ public class GameClient : Game
         if (TryGetLocalPlayer(out PlayerData playerData))
         {
             Player player = playerData.Player;
-            TextRenderer.Draw($"SCORE {player.Score}", 8, 8, textureAtlas, spriteBatch, uiCamera);
+            TextRenderer.Draw($"SCORE:{player.Score}", 8, 8, textureAtlas, spriteBatch, uiCamera);
         }
 
         spriteBatch.End();
