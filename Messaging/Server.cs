@@ -19,8 +19,7 @@ public static class Server
     private static OnClientConnect OnClientConnectCallback;
     private static OnTick OnTickCallback;
 
-    public static void StartServer(string ip,
-        Dictionary<Message.MessageType, MessageStream.MessageHandler> messageHandlers, int tickRate, OnTick onTick,
+    public static void StartServer(Dictionary<Message.MessageType, MessageStream.MessageHandler> messageHandlers, int tickRate, OnTick onTick,
         MessageStream.OnDisconnect onDisconnect, OnClientConnect onClientConnect)
     {
         MessageHandlers = messageHandlers;
@@ -30,8 +29,8 @@ public static class Server
         OnDisconnectCallback = onDisconnect;
         OnTickCallback = onTick;
         OnClientConnectCallback = onClientConnect;
-
-        TcpListener = new TcpListener(IPAddress.Parse(ip), 8052);
+        
+        TcpListener = new TcpListener(IPAddress.Any, IpUtils.DefaultPort);
         TcpListener.Start();
         TcpListener.BeginAcceptTcpClient(TcpConnectCallback, null);
 
@@ -44,7 +43,7 @@ public static class Server
     {
         foreach (KeyValuePair<int, MessageStream> messageStream in Clients) messageStream.Value.StopReading();
 
-        TcpListener.Stop();
+        TcpListener?.Stop();
     }
 
     private static void Tick()

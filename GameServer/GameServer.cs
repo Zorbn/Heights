@@ -27,7 +27,7 @@ public class GameServer
             { Message.MessageType.Heartbeat, (_, _) => { } }
         };
 
-        Server.StartServer("127.0.0.1", messageHandlers, 20, OnTick, OnDisconnect, OnConnect);
+        Server.StartServer(messageHandlers, 20, OnTick, OnDisconnect, OnConnect);
     }
 
     private void OnTick()

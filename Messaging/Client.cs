@@ -50,13 +50,20 @@ public static class Client
             ReceiveBufferSize = MessageStream.DataBufferSize,
             SendBufferSize = MessageStream.DataBufferSize
         };
-        Socket.BeginConnect(IPAddress.Parse(ip), 8052, ConnectCallback, Socket);
+
+        Socket.BeginConnect(IpUtils.GetIp(ip), IpUtils.DefaultPort, ConnectCallback, Socket);
     }
 
     public static void StopClient()
     {
-        MessageStream.StopReading();
-        Socket.Close();
+        MessageStream?.StopReading();
+        Socket?.Close();
+    }
+
+    public static void RegisterHandler(Message.MessageType type, MessageStream.MessageHandler handler)
+    {
+        if (MessageHandlers is null) return;
+        MessageHandlers[type] = handler;
     }
 
     private static void ConnectCallback(IAsyncResult result)

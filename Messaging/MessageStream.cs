@@ -146,6 +146,7 @@ public class MessageStream
         var data = (IData)ByteUtils.ByteArrayToObject(Message.ToDataType(messageType),
             dataBuffer.GetRange(offset, length - offset).ToArray());
 
-        messageHandlers[messageType](Id, data);
+        if (!messageHandlers.TryGetValue(messageType, out MessageHandler handler)) return;
+        handler(Id, data);
     }
 }
