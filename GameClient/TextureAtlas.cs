@@ -5,13 +5,12 @@ namespace GameClient;
 
 public class TextureAtlas
 {
-    // Prevent textures occasionally bleeding together on the edges.
-    public const float Padding = 0.01f;
     public readonly int Width;
     public readonly int Height;
 
     private readonly Texture2D texture;
     public readonly int TileSize;
+    public readonly int HalfTileSize;
 
     public TextureAtlas(GraphicsDevice graphicsDevice, string path, int tileSize)
     {
@@ -19,10 +18,11 @@ public class TextureAtlas
         Width = texture.Width / tileSize;
         Height = texture.Height / tileSize;
         TileSize = tileSize;
+        HalfTileSize = TileSize / 2;
     }
 
     public void Draw(SpriteBatch batch, Camera camera, Vector2 position, int texX, int texY, int texW, int texH,
-        Color color, float scale = 1f, float rotation = 0f, bool flipped = false)
+        Color color, Vector2? scale = null, float rotation = 0f, bool flipped = false)
     {
         if (camera.Cull)
         {
@@ -35,7 +35,7 @@ public class TextureAtlas
             if (notVisibleX || notVisibleY) return;
         }
 
-        var size = new Vector2(scale * camera.Scale);
+        Vector2 size = (scale ?? Vector2.One) * camera.Scale;
         var srcRect = new Rectangle(texX * TileSize, texY * TileSize, texW * TileSize, texH * TileSize);
         var halfSize = new Vector2(srcRect.Width * 0.5f, srcRect.Height * 0.5f);
         Vector2 drawPos = (position + halfSize - camera.Position) * camera.Scale;

@@ -2,9 +2,10 @@
 
 namespace Shared;
 
-public struct TileData
+public class TileData
 {
     [JsonInclude] public int TextureIndex;
     [JsonInclude] public bool AutoTile;
     [JsonInclude] public bool Solid;
+    [JsonInclude] public int Effect;
 }

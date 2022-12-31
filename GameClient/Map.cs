@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Shared;
 
@@ -15,10 +16,15 @@ public class Map
 
     public void Draw(TextureAtlas atlas, SpriteBatch batch, Camera camera)
     {
-        for (var y = 0; y < MapData.Height; y++)
-        for (var x = 0; x < MapData.Width; x++)
+        int minX = Math.Max(MapData.GetTilePos(camera.Position.X) - 1, 0);
+        int maxX = Math.Min(MapData.GetTilePos(camera.Position.X + camera.ViewWidth) + 1, MapData.Width);
+        int minY = Math.Max(MapData.GetTilePos(camera.Position.Y) - 1, 0);
+        int maxY = Math.Min(MapData.GetTilePos(camera.Position.Y + camera.ViewHeight) + 1, MapData.Height);
+
+        for (int x = minX; x < maxX; x++)
+        for (int y = minY; y < maxY; y++)
         {
-            char currentTile = MapData.Data[x + y * MapData.Width];
+            char currentTile = MapData.GetTile(x, y);
             if (currentTile == ' ') continue;
 
             int atlasX = MapData.Palette[currentTile].TextureIndex % atlas.Width;

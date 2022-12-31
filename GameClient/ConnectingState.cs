@@ -40,14 +40,15 @@ public class ConnectingState : IGameState
             gameClient.SwitchGameState(GameState.MainMenu);
     }
 
-    public void Draw(TextureAtlas atlas, SpriteBatch batch, int windowWidth, int windowHeight, float deltaTime)
+    public void Draw(Background background, TextureAtlas atlas, SpriteBatch batch, int windowWidth, int windowHeight, float deltaTime)
     {
         camera.ScaleToScreen(windowWidth, windowHeight);
         
         batch.Begin(samplerState: SamplerState.PointClamp);
         
-        int padding = atlas.TileSize / 2;
-        TextRenderer.Draw("Connecting...", padding, camera.ViewHeight - atlas.TileSize - padding, atlas, batch, camera);
+        background.Draw(batch, camera);
+        
+        TextRenderer.Draw("Connecting...", atlas.HalfTileSize, camera.ViewHeight - atlas.TileSize - atlas.HalfTileSize, atlas, batch, camera);
         
         batch.End();
     }

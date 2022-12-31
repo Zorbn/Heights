@@ -6,8 +6,7 @@ using Shared;
 namespace GameClient;
 
 /* TODO:
- * Add a background image.
- * Make the map larger.
+ * Don't include noClip by default.
  */
 
 public class GameClient : Game
@@ -21,10 +20,11 @@ public class GameClient : Game
     
     private SpriteBatch spriteBatch;
     private TextureAtlas textureAtlas;
+    private Background background;
     
     private IGameState gameState;
     private GameState gameStateId;
-    private bool gameStateInitialized = false;
+    private bool gameStateInitialized;
 
     public GameClient()
     {
@@ -42,6 +42,7 @@ public class GameClient : Game
     protected override void Initialize()
     {
         textureAtlas = new TextureAtlas(GraphicsDevice, "Content/atlas.png", 16);
+        background = new Background(GraphicsDevice, "Content/background.png");
         Sprite.LoadAnimation(Animation.PlayerIdle, "Content/Animations/playerIdle.json");
         Sprite.LoadAnimation(Animation.PlayerRunning, "Content/Animations/playerRunning.json");
         Sprite.LoadAnimation(Animation.PlayerJumping, "Content/Animations/playerJumping.json");
@@ -70,10 +71,10 @@ public class GameClient : Game
     protected override void Draw(GameTime gameTime)
     {
         var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-        GraphicsDevice.Clear(Color.CornflowerBlue);
+        GraphicsDevice.Clear(background.Color);
 
         if (gameStateInitialized)
-            gameState?.Draw(textureAtlas, spriteBatch, Window.ClientBounds.Width, Window.ClientBounds.Height, deltaTime);
+            gameState?.Draw(background, textureAtlas, spriteBatch, Window.ClientBounds.Width, Window.ClientBounds.Height, deltaTime);
 
         base.Draw(gameTime);
     }

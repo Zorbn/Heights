@@ -44,6 +44,12 @@ public class InGameState : IGameState
             input.IsKeyDown(Keys.Escape))
             gameClient.SwitchGameState(GameState.MainMenu);
 
+        // TODO: This shouldn't be available in a release.
+        if (input.WasKeyPressed(Keys.R))
+        {
+            map = new Map("Content/map.json");
+        }
+
         LocalUpdate(input, deltaTime);
     }
     
@@ -79,13 +85,14 @@ public class InGameState : IGameState
         });
     }
 
-    public void Draw(TextureAtlas atlas, SpriteBatch batch, int windowWidth, int windowHeight, float deltaTime)
+    public void Draw(Background background, TextureAtlas atlas, SpriteBatch batch, int windowWidth, int windowHeight, float deltaTime)
     {
         camera.ScaleToScreen(windowWidth, windowHeight);
         uiCamera.ScaleToScreen(windowWidth, windowHeight);
         
         batch.Begin(samplerState: SamplerState.PointClamp);
 
+        background.Draw(batch, camera);
         map.Draw(atlas, batch, camera);
 
         KeyValuePair<int, PlayerData>[] drawablePlayers = players.ToArray();
@@ -98,7 +105,7 @@ public class InGameState : IGameState
 
             bool flipped = pair.Value.Player.Direction == Direction.Left;
             Frame frame = pair.Value.Sprite.UpdateAnimation(pair.Value.Player.Animation, deltaTime);
-            atlas.Draw(batch, camera, pair.Value.Sprite.Position, frame.X, frame.Y, 2, 2, Color.White, 1f,
+            atlas.Draw(batch, camera, pair.Value.Sprite.Position, frame.X, frame.Y, 2, 2, Color.White, Vector2.One,
                 0f, flipped);
         }
 
@@ -106,8 +113,7 @@ public class InGameState : IGameState
         {
             Player player = playerData.Player;
             string scoreText = player.Score == 0 ? $"HIGH SCORE:{player.HighScore}" : $"SCORE:{player.Score}";
-            int padding = atlas.TileSize / 2;
-            TextRenderer.Draw(scoreText, padding, padding, atlas, batch, uiCamera);
+            TextRenderer.Draw(scoreText, atlas.HalfTileSize, atlas.HalfTileSize, atlas, batch, uiCamera, true, 0.5f);
         }
 
         batch.End();
