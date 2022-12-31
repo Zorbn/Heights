@@ -6,6 +6,7 @@ using Shared;
 namespace GameClient;
 
 /* TODO:
+ * Add a background image.
  * Make the map larger.
  */
 

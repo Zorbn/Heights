@@ -12,6 +12,7 @@ public class GameServer
     private readonly MapData mapData;
 
     private readonly Dictionary<int, Player> players = new();
+    private readonly float interactDistance;
     private float heartbeatTimer;
     private float scoreDecayTimer;
 
@@ -19,6 +20,7 @@ public class GameServer
     {
         mapData = MapData.LoadFromFile("Content/map.json");
         mapData.FindSpecialPoints();
+        interactDistance = mapData.TileSize * 0.5f;
 
         Dictionary<Message.MessageType, MessageStream.MessageHandler> messageHandlers = new()
         {
@@ -71,8 +73,8 @@ public class GameServer
                     Animation = (byte)Animation.PlayerIdle
                 });
 
-            bool updatedScore = false;
-            bool updatedHighScore = false;
+            var updatedScore = false;
+            var updatedHighScore = false;
             if (pair.Value.Score != 0)
             {
                 if (decayScore)
@@ -83,7 +85,7 @@ public class GameServer
                 
                 // If the player has points and reached the goal, try to cash in those points.
                 float distToEnd = (pair.Value.Position - mapData.EndPos).Length();
-                if (distToEnd < mapData.TileSize)
+                if (distToEnd < interactDistance)
                 {
                     if (pair.Value.Score > pair.Value.HighScore)
                     {
@@ -99,7 +101,7 @@ public class GameServer
             {
                 // If this player is near the start, give them points.
                 float distToStart = (pair.Value.Position - mapData.StartPos).Length();
-                if (distToStart < mapData.TileSize)
+                if (distToStart < interactDistance)
                 {
                     pair.Value.Score = Player.StartingScore;
                     updatedScore = true;
