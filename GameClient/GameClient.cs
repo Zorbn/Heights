@@ -5,10 +5,6 @@ using Shared;
 
 namespace GameClient;
 
-/* TODO:
- * Don't include noClip by default.
- */
-
 public class GameClient : Game
 {
     private const int VirtualScreenWidth = 320;
