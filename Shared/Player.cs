@@ -25,7 +25,7 @@ public class Player
         Position = position;
     }
 
-    public void Move(float horizontalDir, bool tryJump, bool noClip, MapData mapData, float deltaTime)
+    public void Move(float horizontalDir, bool tryJump, MapData mapData, float deltaTime)
     {
         Vector2 newPosition = Position;
         Vector2 move = Vector2.Zero;
@@ -46,7 +46,7 @@ public class Player
 
         newPosition.X += move.X * Speed * deltaTime;
 
-        if (!noClip && mapData.IsCollidingWith(newPosition, HitBoxSize))
+        if (mapData.IsCollidingWith(newPosition, HitBoxSize))
             newPosition.X = GetMaxPosInTile(Position.X, HitBoxSize.X, move.X, mapData.TileSize);
 
         // Make holding down the jump button after jumping make the player jump higher.
@@ -71,7 +71,7 @@ public class Player
         newPosition.Y += move.Y * Speed * deltaTime;
         grounded = false;
 
-        if (!noClip && mapData.IsCollidingWith(newPosition, HitBoxSize))
+        if (mapData.IsCollidingWith(newPosition, HitBoxSize))
         {
             if (velocity > 0f) grounded = true;
 

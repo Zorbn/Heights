@@ -68,11 +68,10 @@ public class InGameState : IGameState
         Player player = playerData.Player;
 
         var dir = 0f;
-        if (input.IsKeyDown(Keys.Left)) dir -= 1f;
-        if (input.IsKeyDown(Keys.Right)) dir += 1f;
-        bool tryJump = input.IsKeyDown(Keys.Space) || input.IsKeyDown(Keys.Up);
-        bool noClip = input.IsKeyDown(Keys.N);
-        player.Move(dir, tryJump, noClip, map.MapData, deltaTime);
+        if (input.IsKeyDown(Keys.Left) || input.IsKeyDown(Keys.A)) dir -= 1f;
+        if (input.IsKeyDown(Keys.Right) || input.IsKeyDown(Keys.D)) dir += 1f;
+        bool tryJump = input.IsKeyDown(Keys.Space) || input.IsKeyDown(Keys.Up) || input.IsKeyDown(Keys.W);
+        player.Move(dir, tryJump, map.MapData, deltaTime);
         camera.StepTowards(player.Position + new Vector2(map.MapData.TileSize * 0.5f), CameraInterpSpeed * deltaTime);
 
         Client.SendMessage(Message.MessageType.MovePlayer, new MovePlayerData
