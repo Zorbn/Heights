@@ -26,10 +26,10 @@ public class TextureAtlas
     {
         if (camera.Cull)
         {
-            bool notVisibleX = position.X > camera.Position.X + camera.ViewWidth ||
+            bool notVisibleX = position.X > camera.Position.X + camera.ViewWidth + TileSize ||
                                position.X + texW * TileSize < camera.Position.X;
 
-            bool notVisibleY = position.Y > camera.Position.Y + camera.ViewHeight ||
+            bool notVisibleY = position.Y > camera.Position.Y + camera.ViewHeight + TileSize ||
                                position.Y + texH * TileSize < camera.Position.Y;
 
             if (notVisibleX || notVisibleY) return;
