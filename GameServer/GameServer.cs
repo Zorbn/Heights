@@ -12,7 +12,6 @@ public class GameServer
     private readonly MapData mapData;
 
     private readonly Dictionary<int, Player> players = new();
-    private readonly float interactDistance;
     private float heartbeatTimer;
     private float scoreDecayTimer;
 
@@ -20,7 +19,6 @@ public class GameServer
     {
         mapData = MapData.LoadFromFile("Content/map.json");
         mapData.FindSpawnPoint();
-        interactDistance = mapData.TileSize * 0.5f;
 
         Dictionary<Message.MessageType, MessageStream.MessageHandler> messageHandlers = new()
         {

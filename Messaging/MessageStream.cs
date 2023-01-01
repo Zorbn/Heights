@@ -10,7 +10,7 @@ public class MessageStream
     public delegate void OnDisconnect(int id);
 
     public const int DataBufferSize = 1024;
-    private const long TimeoutMs = 5000;
+    private const long TimeoutMs = 30000;
 
     private readonly byte[] incomingDataBuffer = new byte[DataBufferSize];
     private readonly List<byte> storedData = new();

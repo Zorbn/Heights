@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Messaging;
 using Microsoft.Xna.Framework;
@@ -44,8 +45,7 @@ public class InGameState : IGameState
             input.IsKeyDown(Keys.Escape))
             gameClient.SwitchGameState(GameState.MainMenu);
 
-        // TODO: This shouldn't be available in a release.
-        if (input.WasKeyPressed(Keys.R))
+        if (input.IsKeyDown(Keys.LeftControl) && input.WasKeyPressed(Keys.R))
         {
             map = new Map("Content/map.json");
         }

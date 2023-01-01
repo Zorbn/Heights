@@ -30,6 +30,7 @@ public class GameClient : Game
         IsMouseVisible = true;
         Window.AllowUserResizing = true;
         InactiveSleepTime = TimeSpan.Zero; // Don't throttle FPS when the window is inactive.
+        IsFixedTimeStep = false;
         graphics.PreferredBackBufferWidth = VirtualScreenWidth * WindowDefaultSizeMultiplier;
         graphics.PreferredBackBufferHeight = VirtualScreenHeight * WindowDefaultSizeMultiplier;
         graphics.ApplyChanges();
@@ -56,9 +57,10 @@ public class GameClient : Game
     protected override void Update(GameTime gameTime)
     {
         var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-
+        
         input.Update();
-        if (gameStateInitialized)
+        // Don't update if delta time is too large, to preserve physics/other systems.
+        if (deltaTime < 0.1f && gameStateInitialized)
             gameState?.Update(input, deltaTime);
 
         base.Update(gameTime);

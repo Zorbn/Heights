@@ -6,6 +6,7 @@ public class Player
 {
     public const int StartingScore = 1000;
     private const float JumpForce = 1.5f;
+    private const float JumpPadForceMultiplier = 3f;
     private const float ExtraHeightGravityMultiplier = 0.5f;
     private const float Speed = 100f;
     private static readonly Vector2 HitBoxSize = new(8f, 14f);
@@ -27,9 +28,11 @@ public class Player
 
     public void Move(float horizontalDir, bool tryJump, MapData mapData, float deltaTime)
     {
+        TileData tileAtPlayer = mapData.GetTileDataAtWorldPos(Position);
+
         Vector2 newPosition = Position;
         Vector2 move = Vector2.Zero;
-
+        
         move.X = horizontalDir;
 
         Direction = move.X switch
@@ -53,6 +56,11 @@ public class Player
         float gravityMultiplier = extraHeight && velocity < 0f ? ExtraHeightGravityMultiplier : 1.0f;
         velocity += gravityMultiplier * Physics.Gravity * deltaTime;
 
+        if (tileAtPlayer.Effect == mapData.Effect["Jump"])
+        {
+            velocity = -JumpForce * JumpPadForceMultiplier;
+        }
+        
         if (tryJump)
         {
             if (grounded)
@@ -69,12 +77,10 @@ public class Player
         move.Y = velocity;
 
         newPosition.Y += move.Y * Speed * deltaTime;
-        grounded = false;
+        grounded = velocity > 0f && mapData.IsCollidingWith(Position + new Vector2(0f, 1f), HitBoxSize);
 
         if (mapData.IsCollidingWith(newPosition, HitBoxSize))
         {
-            if (velocity > 0f) grounded = true;
-
             newPosition.Y = GetMaxPosInTile(Position.Y, HitBoxSize.Y, move.Y, mapData.TileSize);
             velocity = 0f;
         }
