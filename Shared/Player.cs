@@ -93,8 +93,11 @@ public class Player
     // Find a position that would press the player up against the next tile.
     private float GetMaxPosInTile(float pos, float size, float direction, int tileSize)
     {
-        if (direction > 0f) return MathF.Ceiling(pos / tileSize) * tileSize - size * 0.51f;
+        // Slightly more than 1/2 so that the player is placed fully outside of the tile's hit-box.
+        const float sizeMultiplier = 0.501f;
+        
+        if (direction > 0f) return MathF.Ceiling(pos / tileSize) * tileSize - size * sizeMultiplier;
 
-        return MathF.Floor(pos / tileSize) * tileSize + size * 0.51f;
+        return MathF.Floor(pos / tileSize) * tileSize + size * sizeMultiplier;
     }
 }
