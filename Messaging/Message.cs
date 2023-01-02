@@ -17,6 +17,7 @@ public struct SpawnPlayerData : IData
     [JsonInclude] public float X;
     [JsonInclude] public float Y;
     [JsonInclude] public string Name;
+    [JsonInclude] public int HighScore;
 }
 
 public struct DestroyPlayerData : IData

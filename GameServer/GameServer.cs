@@ -131,7 +131,7 @@ public class GameServer
     {
         Console.WriteLine($"Player connected: {id}");
 
-        var newPlayer = new Player(mapData.SpawnPos, Player.DefaultName);
+        var newPlayer = new Player(mapData.SpawnPos, Player.DefaultName, 0);
         players.Add(id, newPlayer);
 
         // Tell old players about the new player.
@@ -140,7 +140,8 @@ public class GameServer
             Id = id,
             X = newPlayer.Position.X,
             Y = newPlayer.Position.Y,
-            Name = newPlayer.Name
+            Name = newPlayer.Name,
+            HighScore = newPlayer.HighScore
         });
 
         // Tell new players about all players (old players and themself).
@@ -151,7 +152,8 @@ public class GameServer
                 Id = pair.Key,
                 X = pair.Value.Position.X,
                 Y = pair.Value.Position.Y,
-                Name = pair.Value.Name
+                Name = pair.Value.Name,
+                HighScore = pair.Value.HighScore
             });
     }
 

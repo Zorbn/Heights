@@ -26,10 +26,11 @@ public class Player
 
     private float velocity;
 
-    public Player(Vector2 position, string name)
+    public Player(Vector2 position, string name, int highScore)
     {
         Position = position;
         Name = name;
+        HighScore = highScore;
     }
 
     public void Move(float horizontalDir, bool tryJump, MapData mapData, float deltaTime)

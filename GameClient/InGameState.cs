@@ -122,6 +122,8 @@ public class InGameState : IGameState
             var nameX = (int)(sprite.Position.X + atlas.HalfTileSize);
             var nameY = (int)(sprite.Position.Y + map.MapData.TileSize);
             TextRenderer.Draw(player.Name, nameX, nameY, atlas, batch, camera, true, Player.NameScale, true);
+            int scoreY = nameY + atlas.TileSize;
+            TextRenderer.Draw($":{player.HighScore}", nameX, scoreY, atlas, batch, camera, true, Player.NameScale, true);
         }
 
         if (TryGetLocalPlayer(out PlayerData playerData))
@@ -148,7 +150,7 @@ public class InGameState : IGameState
 
         players.Add(spawnData.Id, new PlayerData
         {
-            Player = new Player(playerPos, spawnData.Name),
+            Player = new Player(playerPos, spawnData.Name, spawnData.HighScore),
             Sprite = new Sprite(playerPos)
         });
     }

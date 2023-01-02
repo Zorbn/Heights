@@ -14,6 +14,7 @@ public static class Server
     private static Dictionary<Message.MessageType, MessageStream.MessageHandler> MessageHandlers;
 
     private static int TickRate;
+    private static int LastClientId;
 
     private static MessageStream.OnDisconnect OnDisconnectCallback;
     private static OnClientConnect OnClientConnectCallback;
@@ -59,7 +60,7 @@ public static class Server
         TcpListener.BeginAcceptTcpClient(TcpConnectCallback, null); // Begin accepting new clients
         Console.WriteLine($"Connection from: {client.Client.RemoteEndPoint}...");
 
-        int newClientId = Clients.Count;
+        int newClientId = LastClientId++;
         Clients.Add(newClientId, new MessageStream(client, newClientId, MessageHandlers, OnDisconnect));
         Clients[newClientId].StartReading();
 
