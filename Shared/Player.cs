@@ -56,8 +56,9 @@ public class Player
         float gravityMultiplier = extraHeight && velocity < 0f ? ExtraHeightGravityMultiplier : 1.0f;
         velocity += gravityMultiplier * Physics.Gravity * deltaTime;
 
-        if (tileAtPlayer.Effect == mapData.Effect["Jump"])
+        if (tileAtPlayer.Effect == mapData.Effect["Jump"] && grounded)
         {
+            Audio.PlaySoundWithPitch(Sound.Bounce);
             velocity = -JumpForce * JumpPadForceMultiplier;
         }
         
@@ -65,6 +66,7 @@ public class Player
         {
             if (grounded)
             {
+                Audio.PlaySoundWithPitch(Sound.Jump);
                 extraHeight = true;
                 velocity = -JumpForce;
             }

@@ -165,6 +165,13 @@ public class InGameState : IGameState
         if (data is not UpdateScoreData scoreData) return;
 
         Player player = players[scoreData.Id].Player;
+        
+        // Play a sound if the local player is starting a run.
+        if (localId == scoreData.Id && player.Score == 0 && scoreData.Score != 0)
+        {
+            Audio.PlaySoundWithPitch(Sound.Special);
+        }
+        
         player.Score = scoreData.Score;
     }
     
@@ -173,6 +180,13 @@ public class InGameState : IGameState
         if (data is not UpdateHighScoreData scoreData) return;
 
         Player player = players[scoreData.Id].Player;
+        
+        // Play a sound if the local player got a new high score.
+        if (localId == scoreData.Id)
+        {
+            Audio.PlaySoundWithPitch(Sound.Special);
+        }
+        
         player.HighScore = scoreData.HighScore;
     }
 }

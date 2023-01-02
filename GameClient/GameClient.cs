@@ -43,6 +43,9 @@ public class GameClient : Game
         Sprite.LoadAnimation(Animation.PlayerIdle, "Content/Animations/playerIdle.json");
         Sprite.LoadAnimation(Animation.PlayerRunning, "Content/Animations/playerRunning.json");
         Sprite.LoadAnimation(Animation.PlayerJumping, "Content/Animations/playerJumping.json");
+        Audio.LoadSound(Sound.Jump, "Content/Sounds/jump.wav");
+        Audio.LoadSound(Sound.Bounce, "Content/Sounds/bounce.wav");
+        Audio.LoadSound(Sound.Special, "Content/Sounds/special.wav");
 
         SwitchGameState(GameState.MainMenu);
         
