@@ -6,16 +6,14 @@ namespace GameClient;
 
 public class Camera
 {
-    public readonly bool Cull;
     private Vector2 offset;
 
-    public Camera(int virtualViewWidth, int virtualViewHeight, bool cull = true)
+    public Camera(int virtualViewWidth, int virtualViewHeight)
     {
         VirtualViewWidth = virtualViewWidth;
         VirtualViewHeight = virtualViewHeight;
         ViewWidth = VirtualViewWidth;
         ViewHeight = VirtualViewHeight;
-        Cull = cull;
         Scale = 1f;
 
         UpdateOffset();

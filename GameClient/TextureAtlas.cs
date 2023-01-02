@@ -24,17 +24,6 @@ public class TextureAtlas
     public void Draw(SpriteBatch batch, Camera camera, Vector2 position, int texX, int texY, int texW, int texH,
         Color color, Vector2? scale = null, float rotation = 0f, bool flipped = false)
     {
-        if (camera.Cull)
-        {
-            bool notVisibleX = position.X > camera.Position.X + camera.ViewWidth + TileSize ||
-                               position.X + texW * TileSize < camera.Position.X;
-
-            bool notVisibleY = position.Y > camera.Position.Y + camera.ViewHeight + TileSize ||
-                               position.Y + texH * TileSize < camera.Position.Y;
-
-            if (notVisibleX || notVisibleY) return;
-        }
-
         Vector2 size = (scale ?? Vector2.One) * camera.Scale;
         var srcRect = new Rectangle(texX * TileSize, texY * TileSize, texW * TileSize, texH * TileSize);
         var halfSize = new Vector2(srcRect.Width * 0.5f, srcRect.Height * 0.5f);

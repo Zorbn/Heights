@@ -5,8 +5,12 @@ namespace Shared;
 public class Player
 {
     public const int StartingScore = 1000;
+    public const string DefaultName = "Unnamed";
+    public const int MaxNameLength = 13;
+    public const float NameScale = 0.5f;
+    
     private const float JumpForce = 1.5f;
-    private const float JumpPadForceMultiplier = 3f;
+    private const float JumpPadForceMultiplier = 4f;
     private const float ExtraHeightGravityMultiplier = 0.5f;
     private const float Speed = 100f;
     private static readonly Vector2 HitBoxSize = new(8f, 14f);
@@ -18,12 +22,14 @@ public class Player
     public Vector2 Position;
     public int Score;
     public int HighScore;
+    public string Name = DefaultName;
 
     private float velocity;
 
-    public Player(Vector2 position)
+    public Player(Vector2 position, string name)
     {
         Position = position;
+        Name = name;
     }
 
     public void Move(float horizontalDir, bool tryJump, MapData mapData, float deltaTime)

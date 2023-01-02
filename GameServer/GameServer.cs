@@ -24,6 +24,7 @@ public class GameServer
         {
             { Message.MessageType.MovePlayer, HandleMovePlayer },
             { Message.MessageType.Disconnect, HandleDisconnect },
+            { Message.MessageType.UpdateName, HandleUpdateName },
             { Message.MessageType.Heartbeat, (_, _) => { } }
         };
 
@@ -130,7 +131,7 @@ public class GameServer
     {
         Console.WriteLine($"Player connected: {id}");
 
-        var newPlayer = new Player(mapData.SpawnPos);
+        var newPlayer = new Player(mapData.SpawnPos, Player.DefaultName);
         players.Add(id, newPlayer);
 
         // Tell old players about the new player.
@@ -138,7 +139,8 @@ public class GameServer
         {
             Id = id,
             X = newPlayer.Position.X,
-            Y = newPlayer.Position.Y
+            Y = newPlayer.Position.Y,
+            Name = newPlayer.Name
         });
 
         // Tell new players about all players (old players and themself).
@@ -148,7 +150,8 @@ public class GameServer
             {
                 Id = pair.Key,
                 X = pair.Value.Position.X,
-                Y = pair.Value.Position.Y
+                Y = pair.Value.Position.Y,
+                Name = pair.Value.Name
             });
     }
 
@@ -176,5 +179,26 @@ public class GameServer
     private void HandleDisconnect(int fromId, IData data)
     {
         Server.Disconnect(fromId);
+    }
+    
+    private void HandleUpdateName(int fromId, IData data)
+    {
+        if (data is not UpdateNameData nameData) return;
+        if (!players.TryGetValue(fromId, out Player player)) return;
+
+        string name = nameData.Name;
+
+        if (name.Length > Player.MaxNameLength)
+        {
+            name = name.Substring(0, Player.MaxNameLength);
+        }
+
+        player.Name = name;
+        
+        Server.SendMessageToAll(Message.MessageType.UpdateName, new UpdateNameData
+        {
+            Name = name,
+            Id = fromId
+        });
     }
 }

@@ -12,11 +12,13 @@ public class ConnectingState : IGameState
 {
     private GameClient gameClient;
     private int localId = -1;
+    private string name;
 
     private Camera camera;
 
     public void Initialize(GameClient newGameClient, int screenWidth, int screenHeight, params string[] args)
     {
+        name = args[1];
         gameClient = newGameClient;
 
         Dictionary<Message.MessageType, MessageStream.MessageHandler> messageHandlers = new();
@@ -30,7 +32,7 @@ public class ConnectingState : IGameState
             gameClient.SwitchGameState(GameState.MainMenu);
         }
         
-        camera = new Camera(screenWidth, screenHeight, false);
+        camera = new Camera(screenWidth, screenHeight);
     }
 
     public void Update(Input input, float deltaTime)
@@ -77,6 +79,6 @@ public class ConnectingState : IGameState
     private void OnInitialized(int newLocalId)
     {
         localId = newLocalId;
-        gameClient.SwitchGameState(GameState.InGame, localId.ToString());
+        gameClient.SwitchGameState(GameState.InGame, localId.ToString(), name);
     }
 }

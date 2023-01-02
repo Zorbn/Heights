@@ -16,6 +16,7 @@ public struct SpawnPlayerData : IData
     [JsonInclude] public int Id;
     [JsonInclude] public float X;
     [JsonInclude] public float Y;
+    [JsonInclude] public string Name;
 }
 
 public struct DestroyPlayerData : IData
@@ -44,6 +45,11 @@ public struct UpdateHighScoreData : IData
     [JsonInclude] public int HighScore;
 }
 
+public struct UpdateNameData : IData
+{
+    [JsonInclude] public int Id;
+    [JsonInclude] public string Name;
+}
 
 public struct HeartbeatData : IData
 {
@@ -63,6 +69,7 @@ public class Message
         DestroyPlayer,
         UpdateScore,
         UpdateHighScore,
+        UpdateName,
         Heartbeat,
         Disconnect
     }
@@ -87,6 +94,7 @@ public class Message
             MessageType.DestroyPlayer => typeof(DestroyPlayerData),
             MessageType.UpdateScore => typeof(UpdateScoreData),
             MessageType.UpdateHighScore => typeof(UpdateHighScoreData),
+            MessageType.UpdateName => typeof(UpdateNameData),
             MessageType.Heartbeat => typeof(HeartbeatData),
             MessageType.Disconnect => typeof(DisconnectData),
             _ => throw new ArgumentOutOfRangeException($"No data type corresponds to {messageType}!")

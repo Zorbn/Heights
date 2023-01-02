@@ -27,7 +27,7 @@ public class InGameState : IGameState
 
         map = new Map("Content/map.json");
         camera = new Camera(screenWidth, screenHeight);
-        uiCamera = new Camera(screenWidth, screenHeight, false);
+        uiCamera = new Camera(screenWidth, screenHeight);
 
         Client.RegisterHandler(Message.MessageType.SpawnPlayer, HandleSpawnPlayer);
         Client.RegisterHandler(Message.MessageType.DestroyPlayer, HandleDestroyPlayer);
@@ -35,8 +35,14 @@ public class InGameState : IGameState
         Client.RegisterHandler(Message.MessageType.Heartbeat, HandleHeartbeat);
         Client.RegisterHandler(Message.MessageType.UpdateScore, HandleUpdateScore);
         Client.RegisterHandler(Message.MessageType.UpdateHighScore, HandleUpdateHighScore);
+        Client.RegisterHandler(Message.MessageType.UpdateName, HandleUpdateName);
 
         localId = int.Parse(args[0]);
+        Client.SendMessage(Message.MessageType.UpdateName, new UpdateNameData
+        {
+            Id = localId,
+            Name = args[1]
+        });
     }
 
     public void Update(Input input, float deltaTime)
@@ -97,15 +103,25 @@ public class InGameState : IGameState
         KeyValuePair<int, PlayerData>[] drawablePlayers = players.ToArray();
         foreach (KeyValuePair<int, PlayerData> pair in drawablePlayers)
         {
-            if (pair.Key == localId)
-                pair.Value.Sprite.Teleport(pair.Value.Player.Position);
+            Player player = pair.Value.Player;
+            Sprite sprite = pair.Value.Sprite;
+            bool playerIsLocal = pair.Key == localId;
+            
+            if (playerIsLocal)
+                sprite.Teleport(player.Position);
             else
-                pair.Value.Sprite.StepTowards(pair.Value.Player.Position, deltaTime * SpriteInterpSpeed);
+                sprite.StepTowards(player.Position, deltaTime * SpriteInterpSpeed);
 
-            bool flipped = pair.Value.Player.Direction == Direction.Left;
-            Frame frame = pair.Value.Sprite.UpdateAnimation(pair.Value.Player.Animation, deltaTime);
-            atlas.Draw(batch, camera, pair.Value.Sprite.Position, frame.X, frame.Y, 2, 2, Color.White, Vector2.One,
+            bool flipped = player.Direction == Direction.Left;
+            Frame frame = sprite.UpdateAnimation(player.Animation, deltaTime);
+            atlas.Draw(batch, camera, sprite.Position, frame.X, frame.Y, 2, 2, Color.White, Vector2.One,
                 0f, flipped);
+
+            if (playerIsLocal) continue;
+            
+            var nameX = (int)(sprite.Position.X + atlas.HalfTileSize);
+            var nameY = (int)(sprite.Position.Y + map.MapData.TileSize);
+            TextRenderer.Draw(player.Name, nameX, nameY, atlas, batch, camera, true, Player.NameScale, true);
         }
 
         if (TryGetLocalPlayer(out PlayerData playerData))
@@ -132,7 +148,7 @@ public class InGameState : IGameState
 
         players.Add(spawnData.Id, new PlayerData
         {
-            Player = new Player(playerPos),
+            Player = new Player(playerPos, spawnData.Name),
             Sprite = new Sprite(playerPos)
         });
     }
@@ -188,5 +204,13 @@ public class InGameState : IGameState
         }
         
         player.HighScore = scoreData.HighScore;
+    }
+    
+    private void HandleUpdateName(int fromId, IData data)
+    {
+        if (data is not UpdateNameData nameData) return;
+
+        Player player = players[nameData.Id].Player;
+        player.Name = nameData.Name;
     }
 }
