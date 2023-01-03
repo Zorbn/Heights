@@ -4,7 +4,7 @@ namespace Messaging;
 
 public static class ByteUtils
 {
-    public static byte[] ObjectToByteArray(Type dataType, object obj)
+    public static IEnumerable<byte> ObjectToByteArray(Type dataType, object obj)
     {
         return JsonSerializer.SerializeToUtf8Bytes(obj, dataType);
     }

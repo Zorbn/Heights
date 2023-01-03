@@ -126,8 +126,7 @@ public class MessageStream
             }
             else
             {
-                if (storedDataCount >=
-                    sizeof(int)) // There is enough incoming data to read the next message's length
+                if (storedDataCount >= sizeof(int)) // There is enough incoming data to read the next message's length
                 {
                     nextMessageLength = BitConverter.ToInt32(storedData.ToArray(), 0);
                     hasNextMessageLength = true;
