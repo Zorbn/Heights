@@ -13,7 +13,8 @@ public class MessageStream
     private const long TimeoutMs = 30000;
 
     private readonly byte[] incomingDataBuffer = new byte[DataBufferSize];
-    private readonly List<byte> storedData = new();
+    private readonly byte[] storedData = new byte[DataBufferSize];
+    private int storedDataCount;
 
     private bool hasNextMessageLength;
     public int Id;
@@ -103,18 +104,18 @@ public class MessageStream
     public void Read(int incomingDataLength)
     {
         // Read incoming stream into byte array. 						
-        var trimmedData = new byte[incomingDataLength]; // Incoming data without any empty space					
-        Array.Copy(incomingDataBuffer, 0, trimmedData, 0, incomingDataLength);
-        storedData.AddRange(trimmedData);
+        Array.Copy(incomingDataBuffer, 0, storedData, storedDataCount, incomingDataLength);
+        storedDataCount += incomingDataLength;
 
-        while (storedData.Count > 0)
+        while (storedDataCount > 0)
             if (hasNextMessageLength)
             {
-                if (storedData.Count >= nextMessageLength) // The whole message has been received
+                if (storedDataCount >= nextMessageLength) // The whole message has been received
                 {
                     HandleData(storedData, nextMessageLength);
 
-                    storedData.RemoveRange(0, nextMessageLength);
+                    storedDataCount -= nextMessageLength;
+                    Array.Copy(storedData, nextMessageLength, storedData, 0, storedDataCount);
                     hasNextMessageLength = false;
                     nextMessageLength = 0;
                 }
@@ -125,7 +126,7 @@ public class MessageStream
             }
             else
             {
-                if (storedData.Count >=
+                if (storedDataCount >=
                     sizeof(int)) // There is enough incoming data to read the next message's length
                 {
                     nextMessageLength = BitConverter.ToInt32(storedData.ToArray(), 0);
@@ -138,13 +139,13 @@ public class MessageStream
             }
     }
 
-    public void HandleData(List<byte> dataBuffer, int length)
+    public void HandleData(byte[] dataBuffer, int length)
     {
-        var messageType = (Message.MessageType)BitConverter.ToInt32(dataBuffer.ToArray(), sizeof(int));
+        var messageType = (Message.MessageType)BitConverter.ToInt32(dataBuffer, sizeof(int));
 
         int offset = 2 * sizeof(int); // Length of message length and type
         var data = (IData)ByteUtils.ByteArrayToObject(Message.ToDataType(messageType),
-            dataBuffer.GetRange(offset, length - offset).ToArray());
+            new ReadOnlySpan<byte>(dataBuffer, offset, length - offset));
 
         if (!messageHandlers.TryGetValue(messageType, out MessageHandler handler)) return;
         handler(Id, data);

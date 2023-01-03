@@ -9,7 +9,7 @@ public static class ByteUtils
         return JsonSerializer.SerializeToUtf8Bytes(obj, dataType);
     }
 
-    public static object ByteArrayToObject(Type dataType, byte[] arrBytes)
+    public static object ByteArrayToObject(Type dataType, ReadOnlySpan<byte> arrBytes)
     {
         return JsonSerializer.Deserialize(arrBytes, dataType);
     }
