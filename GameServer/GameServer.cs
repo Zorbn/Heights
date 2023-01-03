@@ -1,4 +1,5 @@
 ﻿using Messaging;
+using Microsoft.Xna.Framework;
 using Shared;
 
 namespace GameServer;
@@ -10,6 +11,11 @@ public class GameServer
     private const float HeartbeatTime = 1f;
     private const float ScoreDecayTime = 1f;
     private readonly MapData mapData;
+    private readonly int effectJump;
+    private readonly int effectStart;
+    private readonly int effectEnd;
+    private readonly int effectFullTrap;
+    private readonly int effectFloorTrap;
 
     private readonly Dictionary<int, Player> players = new();
     private float heartbeatTimer;
@@ -19,6 +25,11 @@ public class GameServer
     {
         mapData = MapData.LoadFromFile("Content/map.json");
         mapData.FindSpawnPoint();
+        effectJump = mapData.Effect["Jump"];
+        effectStart = mapData.Effect["Start"];
+        effectEnd = mapData.Effect["End"];
+        effectFullTrap = mapData.Effect["FullTrap"];
+        effectFloorTrap = mapData.Effect["FloorTrap"];
 
         Dictionary<Message.MessageType, MessageStream.MessageHandler> messageHandlers = new()
         {
@@ -58,21 +69,21 @@ public class GameServer
                 X = pair.Value.Position.X,
                 Y = pair.Value.Position.Y,
                 Direction = (byte)pair.Value.Direction,
-                Animation = (byte)pair.Value.Animation
+                Animation = (byte)pair.Value.Animation,
+                Grounded = pair.Value.Grounded
             });
 
             // If this player fell out of the map, reset it's position.
-            if (pair.Value.Position.Y > mapData.TileSize * mapData.Height)
-                Server.SendMessageToAll(Message.MessageType.MovePlayer, new MovePlayerData
-                {
-                    Id = pair.Key,
-                    X = mapData.SpawnPos.X,
-                    Y = mapData.SpawnPos.Y,
-                    Direction = (byte)Direction.Right,
-                    Animation = (byte)Animation.PlayerIdle
-                });
+            if (pair.Value.Position.Y > mapData.TileSize * mapData.Height) KillPlayer(pair);
 
             TileData tileAtPlayer = mapData.GetTileDataAtWorldPos(pair.Value.Position);
+            bool playerNearFloor = mapData.IsCollidingWith(pair.Value.Position + new Vector2(0f, mapData.FloorTileSize),
+                Player.HitBoxSize);
+            
+            if (tileAtPlayer.Effect == effectFullTrap || (playerNearFloor && tileAtPlayer.Effect == effectFloorTrap))
+            {
+                KillPlayer(pair);
+            }
             
             var updatedScore = false;
             var updatedHighScore = false;
@@ -85,7 +96,7 @@ public class GameServer
                 }
                 
                 // If the player has points and reached the goal, try to cash in those points.
-                if (tileAtPlayer.Effect == mapData.Effect["End"])
+                if (tileAtPlayer.Effect == effectEnd)
                 {
                     if (pair.Value.Score > pair.Value.HighScore)
                     {
@@ -100,7 +111,7 @@ public class GameServer
             else
             {
                 // If this player is near the start, give them points.
-                if (tileAtPlayer.Effect == mapData.Effect["Start"])
+                if (tileAtPlayer.Effect == effectStart)
                 {
                     pair.Value.Score = Player.StartingScore;
                     updatedScore = true;
@@ -167,6 +178,27 @@ public class GameServer
         });
     }
 
+    private void KillPlayer(KeyValuePair<int, Player> pair)
+    {
+        Server.SendMessageToAll(Message.MessageType.MovePlayer, new MovePlayerData
+        {
+            Id = pair.Key,
+            X = mapData.SpawnPos.X,
+            Y = mapData.SpawnPos.Y,
+            Direction = (byte)Direction.Right,
+            Animation = (byte)Animation.PlayerIdle,
+            Grounded = false
+        });
+
+        pair.Value.Score = 0;
+        
+        Server.SendMessageToAll(Message.MessageType.UpdateScore, new UpdateScoreData
+        {
+            Id = pair.Key,
+            Score = 0
+        });
+    }
+
     private void HandleMovePlayer(int fromId, IData data)
     {
         if (data is not MovePlayerData moveData) return;
@@ -176,6 +208,7 @@ public class GameServer
         player.Position.Y = moveData.Y;
         player.Direction = (Direction)moveData.Direction;
         player.Animation = (Animation)moveData.Animation;
+        player.Grounded = moveData.Grounded;
     }
     
     private void HandleDisconnect(int fromId, IData data)

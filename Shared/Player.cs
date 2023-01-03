@@ -8,21 +8,21 @@ public class Player
     public const string DefaultName = "Unnamed";
     public const int MaxNameLength = 13;
     public const float NameScale = 0.5f;
+    public static readonly Vector2 HitBoxSize = new(8f, 14f);
     
     private const float JumpForce = 1.5f;
     private const float JumpPadForceMultiplier = 4f;
     private const float ExtraHeightGravityMultiplier = 0.5f;
     private const float Speed = 100f;
-    private static readonly Vector2 HitBoxSize = new(8f, 14f);
     public Animation Animation = Animation.PlayerIdle;
     public Direction Direction = Direction.Right;
     private bool extraHeight;
-    private bool grounded;
 
     public Vector2 Position;
     public int Score;
     public int HighScore;
     public string Name = DefaultName;
+    public bool Grounded;
 
     private float velocity;
 
@@ -49,7 +49,7 @@ public class Player
             _ => Direction
         };
 
-        if (grounded)
+        if (Grounded)
             Animation = move.X != 0f ? Animation.PlayerRunning : Animation.PlayerIdle;
         else
             Animation = Animation.PlayerJumping;
@@ -63,15 +63,23 @@ public class Player
         float gravityMultiplier = extraHeight && velocity < 0f ? ExtraHeightGravityMultiplier : 1.0f;
         velocity += gravityMultiplier * Physics.Gravity * deltaTime;
 
-        if (tileAtPlayer.Effect == mapData.Effect["Jump"] && grounded)
+        bool nearFloor = mapData.IsCollidingWith(Position + new Vector2(0f, mapData.FloorTileSize),
+            HitBoxSize);
+        
+        if (tileAtPlayer.Effect == mapData.Effect["Jump"] && nearFloor)
         {
             Audio.PlaySoundWithPitch(Sound.Bounce);
             velocity = -JumpForce * JumpPadForceMultiplier;
+            
+            // Don't allow holding the jump button to get more height from a bounce pad.
+            extraHeight = false;
+            // Move the player out of the bounce pad so it only triggers once.
+            Position.Y += mapData.FloorTileSize;
         }
         
         if (tryJump)
         {
-            if (grounded)
+            if (Grounded)
             {
                 Audio.PlaySoundWithPitch(Sound.Jump);
                 extraHeight = true;
@@ -86,7 +94,7 @@ public class Player
         move.Y = velocity;
 
         newPosition.Y += move.Y * Speed * deltaTime;
-        grounded = velocity > 0f && mapData.IsCollidingWith(Position + new Vector2(0f, 1f), HitBoxSize);
+        Grounded = velocity > 0f && mapData.IsCollidingWith(Position + new Vector2(0f, 1f), HitBoxSize);
 
         if (mapData.IsCollidingWith(newPosition, HitBoxSize))
         {

@@ -14,7 +14,8 @@ public class MapData
     [JsonInclude] public string[] Data;
 
     public Vector2 SpawnPos;
-
+    public int FloorTileSize;
+    
     public static MapData LoadFromFile(string path)
     {
         string text = File.ReadAllText(path);
@@ -33,6 +34,8 @@ public class MapData
             if (length != newMapData.Width) throw new ArgumentException(
                 $"Map should have {newMapData.Width} columns, but has {length} columns instead on row {i}!");
         }
+
+        newMapData.FloorTileSize = newMapData.TileSize / 4;
         
         return newMapData;
     }

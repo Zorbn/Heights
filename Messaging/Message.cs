@@ -32,6 +32,7 @@ public struct MovePlayerData : IData
     [JsonInclude] public float Y;
     [JsonInclude] public byte Direction;
     [JsonInclude] public byte Animation;
+    [JsonInclude] public bool Grounded;
 }
 
 public struct UpdateScoreData : IData
@@ -60,7 +61,7 @@ public struct DisconnectData : IData
 {
 }
 
-public class Message
+public readonly struct Message
 {
     public enum MessageType
     {

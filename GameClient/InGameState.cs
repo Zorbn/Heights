@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Messaging;
 using Microsoft.Xna.Framework;
@@ -86,7 +85,8 @@ public class InGameState : IGameState
             X = player.Position.X,
             Y = player.Position.Y,
             Direction = (byte)player.Direction,
-            Animation = (byte)player.Animation
+            Animation = (byte)player.Animation,
+            Grounded = player.Grounded
         });
     }
 
@@ -122,6 +122,9 @@ public class InGameState : IGameState
             var nameX = (int)(sprite.Position.X + atlas.HalfTileSize);
             var nameY = (int)(sprite.Position.Y + map.MapData.TileSize);
             TextRenderer.Draw(player.Name, nameX, nameY, atlas, batch, camera, true, Player.NameScale, true);
+            
+            if (player.HighScore == 0) continue;
+            
             int scoreY = nameY + atlas.TileSize;
             TextRenderer.Draw($":{player.HighScore}", nameX, scoreY, atlas, batch, camera, true, Player.NameScale, true);
         }
@@ -171,6 +174,7 @@ public class InGameState : IGameState
         player.Position.Y = moveData.Y;
         player.Direction = (Direction)moveData.Direction;
         player.Animation = (Animation)moveData.Animation;
+        player.Grounded = moveData.Grounded;
     }
 
     private void HandleHeartbeat(int fromId, IData data)
