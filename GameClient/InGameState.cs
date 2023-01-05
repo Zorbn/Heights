@@ -12,6 +12,7 @@ public class InGameState : IGameState
 {
     private const float SpriteInterpSpeed = 20f;
     private const float CameraInterpSpeed = 20f;
+    private const float TickTime = 1f / 30f;
     
     private readonly Dictionary<int, PlayerData> players = new();
     private Map map;
@@ -19,6 +20,7 @@ public class InGameState : IGameState
     private Camera uiCamera;
     private int localId = -1;
     private GameClient gameClient;
+    private float tickTimer;
 
     public void Initialize(GameClient newGameClient, int screenWidth, int screenHeight, params string[] args)
     {
@@ -50,6 +52,14 @@ public class InGameState : IGameState
             input.IsKeyDown(Keys.Escape))
             gameClient.SwitchGameState(GameState.MainMenu);
 
+        tickTimer += deltaTime;
+
+        while (tickTimer > TickTime)
+        {
+            tickTimer -= TickTime;
+            Tick();
+        }
+
         if (input.IsKeyDown(Keys.LeftControl) && input.WasKeyPressed(Keys.R))
         {
             map = new Map("Content/map.json");
@@ -57,13 +67,29 @@ public class InGameState : IGameState
 
         LocalUpdate(input, deltaTime);
     }
+
+    private void Tick()
+    {
+        if (!TryGetLocalPlayer(out PlayerData playerData)) return;
+        
+        Player player = playerData.Player;
+        
+        Client.SendMessage(Message.MessageType.MovePlayer, new MovePlayerData
+        {
+            Id = localId,
+            X = player.Position.X,
+            Y = player.Position.Y,
+            Direction = (byte)player.Direction,
+            Animation = (byte)player.Animation,
+            Grounded = player.Grounded
+        });
+    }
     
     private bool TryGetLocalPlayer(out PlayerData playerData)
     {
         playerData = null;
         
-        if (localId == -1) return false;
-        return players.TryGetValue(localId, out playerData);
+        return localId != -1 && players.TryGetValue(localId, out playerData);
     }
 
     private void LocalUpdate(Input input, float deltaTime)
@@ -78,16 +104,6 @@ public class InGameState : IGameState
         bool tryJump = input.IsKeyDown(Keys.Space) || input.IsKeyDown(Keys.Up) || input.IsKeyDown(Keys.W);
         player.Move(dir, tryJump, map.MapData, deltaTime);
         camera.StepTowards(player.Position + new Vector2(map.MapData.TileSize * 0.5f), CameraInterpSpeed * deltaTime);
-
-        Client.SendMessage(Message.MessageType.MovePlayer, new MovePlayerData
-        {
-            Id = localId,
-            X = player.Position.X,
-            Y = player.Position.Y,
-            Direction = (byte)player.Direction,
-            Animation = (byte)player.Animation,
-            Grounded = player.Grounded
-        });
     }
 
     public void Draw(Background background, TextureAtlas atlas, SpriteBatch batch, int windowWidth, int windowHeight, float deltaTime)

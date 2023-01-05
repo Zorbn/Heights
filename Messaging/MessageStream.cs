@@ -142,7 +142,7 @@ public class MessageStream
     {
         var messageType = (Message.MessageType)BitConverter.ToInt32(dataBuffer, sizeof(int));
 
-        int offset = 2 * sizeof(int); // Length of message length and type
+        const int offset = 2 * sizeof(int); // Length of message length and type
         var data = (IData)ByteUtils.ByteArrayToObject(Message.ToDataType(messageType),
             new ReadOnlySpan<byte>(dataBuffer, offset, length - offset));
 

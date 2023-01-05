@@ -21,7 +21,7 @@ public class Player
     public Vector2 Position;
     public int Score;
     public int HighScore;
-    public string Name = DefaultName;
+    public string Name;
     public bool Grounded;
 
     private float velocity;
